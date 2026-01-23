@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
-const { adminLoginService } = require("../../services/admin/adminAuthService");
+const { loginService } = require("../../services/admin/adminAuthService");
 
-const adminLoginController = async (req, res) => {
+const loginController = async (req, res) => {
   const { email, password } = req.body;
-  const result = await adminLoginService(email, password);
+  const result = await loginService(email, password);
 
   const token = jwt.sign(
     { email: result.data.email, role: result.data.role },
@@ -18,7 +18,14 @@ const adminLoginController = async (req, res) => {
   });
 };
 
+const logoutController = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Admin logged out successfully",
+  });
+};
 
 module.exports = {
-  adminLoginController,
+  loginController,
+  logoutController,
 };

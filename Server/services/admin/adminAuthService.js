@@ -1,4 +1,4 @@
-const adminLoginService = (email, password) => {
+const loginService = (email, password) => {
   if (!email || !password) {
     return {
       success: false,
@@ -27,5 +27,5 @@ const adminLoginService = (email, password) => {
 };
 
 module.exports = {
-  adminLoginService,
+  loginService,
 };

@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const leavesModel = require("../../models/leavesModel");
 const adminCheck = require("../../utils/adminCheck");
-const { status } = require("init");
 
 //GET ALL LEAVES
 const getAllLeavesService = async (query, admin) => {
