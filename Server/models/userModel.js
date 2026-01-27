@@ -75,16 +75,26 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+
     isFirstLogin: {
       type: Boolean,
-      default: true
+      default: true,
     },
+
     activeStatus: {
       type: Boolean,
       default: true,
     },
+
+    resetPasswordToken: {
+      type: String,
+    },
+
+    resetPasswordExpire: {
+      type: String,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("user", userSchema);

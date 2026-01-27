@@ -1,5 +1,6 @@
 module.exports = {
   OFFICE_IPS: ["192.168.1.1"],
+  // PG_IPS: ["192.168.1.1"],
   OFFICE_LOCATION: {
     lat: 23.041596119884908,
     lng: 72.55185604867239,

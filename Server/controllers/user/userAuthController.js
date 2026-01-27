@@ -1,6 +1,7 @@
 const {
   loginService,
   changePasswordService,
+  
 } = require("../../services/user/userAuthService");
 
 const loginController = async (req, res) => {
@@ -16,8 +17,8 @@ const loginController = async (req, res) => {
   }
 };
 
-const changePasswordController = async(req,res) => {
-    try {
+const changePasswordController = async (req, res) => {
+  try {
     const result = await changePasswordService(req.user, req.body);
     return res.status(result.status).json(result);
   } catch (error) {
@@ -27,9 +28,12 @@ const changePasswordController = async(req,res) => {
       message: "Internal server error",
     });
   }
-}
+};
+
+
 
 module.exports = {
   loginController,
-  changePasswordController
+  changePasswordController,
+  
 };

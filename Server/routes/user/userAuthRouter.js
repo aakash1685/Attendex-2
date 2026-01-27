@@ -4,6 +4,7 @@ const userProtect = require("../../middlewares/userAuthMiddleware");
 const {
   loginController,
   changePasswordController,
+  forgotPasswordController,
 } = require("../../controllers/user/userAuthController");
 
 router.post("/login", loginController);
