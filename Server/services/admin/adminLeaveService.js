@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const leavesModel = require("../../models/leavesModel");
+const attendanceModel = require("../../models/attendanceModel");
 const adminCheck = require("../../utils/adminCheck");
 
 //GET ALL LEAVES
@@ -115,6 +116,27 @@ const approveLeaveService = async (leaveId, admin) => {
   leave.leaveStatus = "APPROVED";
   await leave.save();
 
+  for (const date of leave.leaveDates) {
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+
+    await attendanceModel.findOneAndUpdate(
+      {
+        empId: leave.empId,
+        date: day,
+      },
+      {
+        empId: leave.empId,
+        deptId: leave.deptId,
+        date: day,
+        attendanceStatus: "LEAVE",
+        checkInTime: null,
+        checkOutTime: null,
+      },
+      { upsert: true, new: true },
+    );
+  }
+
   return {
     status: 200,
     success: true,
@@ -159,15 +181,37 @@ const rejectLeaveService = async (leaveId, admin) => {
 
 //DELETE LEAVE
 const deleteLeaveService = async (leaveId, admin) => {
-  const check = adminCheck(admin);
+   const check = adminCheck(admin);
   if (check) return check;
 
-  const deletedLeave = await leavesModel.findByIdAndDelete(leaveId);
+  const leave = await leavesModel.findById(leaveId);
 
-  return {
+  if (!leave) {
+    return {
+      status: 404,
+      success: false,
+      message: "Leave not found",
+    };
+  }
+
+    if (leave.leaveStatus === "APPROVED") {
+    for (const date of leave.leaveDates) {
+      const day = new Date(date);
+      day.setHours(0, 0, 0, 0);
+
+      await attendanceModel.deleteOne({
+        empId: leave.empId,
+        date: day,
+        attendanceStatus: "LEAVE",
+      });
+    }
+  }
+    await leavesModel.findByIdAndDelete(leaveId);
+
+     return {
     status: 200,
     success: true,
-    message: "Leave deleted successfully",
+    message: "Leave deleted and attendance reverted successfully",
   };
 };
 

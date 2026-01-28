@@ -23,6 +23,16 @@ const leavesSchema = mongoose.Schema(
       minlength: 5,
     },
 
+    leaveDates: {
+      type: [Date],
+      required: true,
+      validate: {
+        validator: (v) => v.length > 0,
+        message: "At least one leave date is required",
+      },
+      index: true,
+    },
+
     totalDays: {
       type: Number,
       required: true,
@@ -46,7 +56,7 @@ const leavesSchema = mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
+leavesSchema.index({ empId: 1, leaveDates: 1 });
 module.exports = mongoose.model("leave", leavesSchema);

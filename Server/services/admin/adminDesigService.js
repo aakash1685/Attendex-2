@@ -31,7 +31,7 @@ const createDesigService = async (data, admin) => {
 
   return {
     status: 201,
-    success: false,
+    success: true,
     message: "New designation added successfully!",
   };
 };
