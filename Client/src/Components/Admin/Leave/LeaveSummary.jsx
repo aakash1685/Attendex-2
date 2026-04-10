@@ -1,23 +1,26 @@
 import React from "react";
 
-const Card = ({ title, value, color }) => {
-  return (
-    <div className="backdrop-blur-xl bg-white/80 border border-white/40 shadow-lg rounded-2xl p-5 hover:shadow-2xl hover:-translate-y-1 transition duration-300">
-      <p className="text-sm text-gray-500">{title}</p>
-      <h2 className={`text-3xl font-bold mt-2 ${color}`}>
-        {value || 0}
-      </h2>
-    </div>
-  );
-};
+const cards = [
+  { key: "total", title: "Total", color: "text-slate-800" },
+  { key: "APPROVED", title: "Approved", color: "text-emerald-600" },
+  { key: "PENDING", title: "Pending", color: "text-amber-500" },
+  { key: "REJECTED", title: "Rejected", color: "text-rose-500" },
+];
 
-const LeaveSummary = ({ summary }) => {
+const LeaveSummary = ({ summary, loading }) => {
   return (
-    <div className="grid grid-cols-4 gap-5">
-      <Card title="Total" value={summary.total} color="text-gray-800" />
-      <Card title="Approved" value={summary.APPROVED} color="text-emerald-600" />
-      <Card title="Pending" value={summary.PENDING} color="text-amber-500" />
-      <Card title="Rejected" value={summary.REJECTED} color="text-rose-500" />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card) => (
+        <div
+          key={card.key}
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow"
+        >
+          <p className="text-sm text-slate-500">{card.title}</p>
+          <h2 className={`mt-2 text-3xl font-bold ${card.color}`}>
+            {loading ? "..." : summary?.[card.key] || 0}
+          </h2>
+        </div>
+      ))}
     </div>
   );
 };
