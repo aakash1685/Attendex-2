@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Toaster, toast } from "react-hot-toast";
-import { Building2, Sparkles, UserRound } from "lucide-react";
-import AttendanceSummaryCards from "../../Components/Admin/Attendance/AttendanceSummaryCards";
+import { Plus } from "lucide-react";
 import AttendanceTable from "../../Components/Admin/Attendance/AttendanceTable";
-import AttendanceToolbar from "../../Components/Admin/Attendance/AttendanceToolbar";
-import AttendanceFormModal from "../../Components/Admin/Attendance/AttendanceFormModal";
+import AttendanceFilters from "../../Components/Admin/Attendance/AttendanceFilters";
+import AttendanceSummary from "../../Components/Admin/Attendance/AttendanceSummary";
+import AttendanceForm from "../../Components/Admin/Attendance/AttendanceForm";
 import {
   buildAttendanceQuery,
   getEmployeeDepartmentId,
@@ -32,6 +32,8 @@ const initialSummary = {
   LEAVE: 0,
 };
 
+const getAttendanceData = (payload) => payload?.data || payload?.attendance || [];
+
 const AttendanceMgmt = () => {
   const [viewMode, setViewMode] = useState("all");
   const [filters, setFilters] = useState(initialFilters);
@@ -45,9 +47,7 @@ const AttendanceMgmt = () => {
   const [submitting, setSubmitting] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [editRecord, setEditRecord] = useState(null);
-  const [emptyMessage, setEmptyMessage] = useState(
-    "Apply a filter or create a manual attendance record to get started.",
-  );
+  const [emptyMessage, setEmptyMessage] = useState("No Attendance Found");
 
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("token");
@@ -59,73 +59,62 @@ const AttendanceMgmt = () => {
   const fetchReferenceData = useCallback(async () => {
     try {
       const [departmentRes, employeesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/admin/dept/`, {
-          headers: authHeaders,
-        }),
-        axios.get(`${API_BASE_URL}/api/admin/user/`, {
-          headers: authHeaders,
-        }),
+        axios.get(`${API_BASE_URL}/api/admin/dept/`, { headers: authHeaders }),
+        axios.get(`${API_BASE_URL}/api/admin/user/`, { headers: authHeaders }),
       ]);
 
       setDepartments(departmentRes.data?.result?.data || []);
       setEmployees(employeesRes.data?.employees || []);
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Failed to load attendance filters.",
+        error?.response?.data?.message || "Failed to load employee and department data.",
       );
     }
   }, [authHeaders]);
 
-  const fetchSummary = useCallback(async (activeDeptId) => {
-    setSummaryLoading(true);
+  const fetchSummary = useCallback(
+    async (activeDeptId) => {
+      setSummaryLoading(true);
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/admin/attendance/summary`, {
+          headers: authHeaders,
+          params: getSummaryParams(summaryMonth, activeDeptId),
+        });
 
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin/attendance/summary`, {
-        headers: authHeaders,
-        params: getSummaryParams(summaryMonth, activeDeptId),
-      });
-
-      setSummary({
-        ...initialSummary,
-        ...(res.data?.data || {}),
-      });
-    } catch (error) {
-      setSummary(initialSummary);
-      toast.error(
-        error?.response?.data?.message || "Failed to load attendance summary.",
-      );
-    } finally {
-      setSummaryLoading(false);
-    }
-  }, [authHeaders, summaryMonth]);
+        setSummary({ ...initialSummary, ...(res.data?.data || {}) });
+      } catch (error) {
+        setSummary(initialSummary);
+        toast.error(error?.response?.data?.message || "Failed to fetch attendance summary.");
+      } finally {
+        setSummaryLoading(false);
+      }
+    },
+    [authHeaders, summaryMonth],
+  );
 
   const fetchAttendance = useCallback(async () => {
-    const query = buildAttendanceQuery(viewMode, filters);
-
     if (viewMode === "employee" && !filters.empId) {
       setRecords([]);
       setTableLoading(false);
-      setEmptyMessage("Choose an employee to load their attendance history.");
+      setEmptyMessage("Select an employee to load attendance history.");
       return;
     }
 
     if (viewMode === "department" && !filters.deptId) {
       setRecords([]);
       setTableLoading(false);
-      setEmptyMessage("Choose a department to review its attendance records.");
+      setEmptyMessage("Select a department to load attendance history.");
       return;
     }
 
     setTableLoading(true);
-
     try {
+      const query = buildAttendanceQuery(viewMode, filters);
       let url = `${API_BASE_URL}/api/admin/attendance/`;
 
       if (viewMode === "employee") {
         url = `${API_BASE_URL}/api/admin/attendance/emp/${filters.empId}`;
-      }
-
-      if (viewMode === "department") {
+      } else if (viewMode === "department") {
         url = `${API_BASE_URL}/api/admin/attendance/dept/${filters.deptId}`;
       }
 
@@ -134,51 +123,49 @@ const AttendanceMgmt = () => {
         params: query,
       });
 
-      const nextRecords = res.data?.data || res.data?.attendance || [];
-      setRecords(nextRecords);
-      setEmptyMessage("No attendance records matched the selected filters.");
+      setRecords(getAttendanceData(res.data));
+      setEmptyMessage("No Attendance Found");
     } catch (error) {
       if (error?.response?.status === 404) {
         setRecords([]);
-        setEmptyMessage(
-          error?.response?.data?.message ||
-            "No attendance records matched the selected filters.",
-        );
+        setEmptyMessage(error?.response?.data?.message || "No Attendance Found");
       } else {
-        toast.error(
-          error?.response?.data?.message || "Failed to load attendance records.",
-        );
+        toast.error(error?.response?.data?.message || "Failed to fetch attendance records.");
       }
     } finally {
       setTableLoading(false);
     }
   }, [authHeaders, filters, viewMode]);
 
+  const refreshAllData = useCallback(() => {
+    fetchAttendance();
+    fetchSummary(filters.deptId);
+  }, [fetchAttendance, fetchSummary, filters.deptId]);
+
   useEffect(() => {
     fetchReferenceData();
   }, [fetchReferenceData]);
 
   useEffect(() => {
-    fetchAttendance();
-    fetchSummary(filters.deptId);
-  }, [fetchAttendance, fetchSummary, filters.deptId]);
+    refreshAllData();
+  }, [refreshAllData]);
 
   const handleManualSubmit = async (payload) => {
     setSubmitting(true);
-
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/attendance/mannual`, payload, {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/attendance/mannual`, payload, {
         headers: authHeaders,
       });
 
-      toast.success("Manual attendance added successfully.");
+      if (response.data?.data) {
+        setRecords((current) => [response.data.data, ...current]);
+      }
+
+      toast.success("Attendance marked successfully.");
       setManualOpen(false);
-      fetchAttendance();
-      fetchSummary(filters.deptId);
+      refreshAllData();
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Unable to create attendance record.",
-      );
+      toast.error(error?.response?.data?.message || "Unable to mark attendance.");
     } finally {
       setSubmitting(false);
     }
@@ -187,41 +174,79 @@ const AttendanceMgmt = () => {
   const handleEditSubmit = async (payload) => {
     if (!editRecord?._id) return;
 
+    const oldRecord = records.find((item) => item._id === editRecord._id);
+
     setSubmitting(true);
+    setRecords((current) =>
+      current.map((record) =>
+        record._id === editRecord._id
+          ? {
+              ...record,
+              ...payload,
+            }
+          : record,
+      ),
+    );
 
     try {
-      await axios.patch(
-        `${API_BASE_URL}/api/admin/attendance/edit/${editRecord._id}`,
-        payload,
-        {
-          headers: authHeaders,
-        },
-      );
+      await axios.patch(`${API_BASE_URL}/api/admin/attendance/edit/${editRecord._id}`, payload, {
+        headers: authHeaders,
+      });
 
       toast.success("Attendance updated successfully.");
       setEditRecord(null);
-      fetchAttendance();
-      fetchSummary(filters.deptId);
+      refreshAllData();
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Unable to update attendance record.",
-      );
+      if (oldRecord) {
+        setRecords((current) =>
+          current.map((record) => (record._id === editRecord._id ? oldRecord : record)),
+        );
+      }
+      toast.error(error?.response?.data?.message || "Unable to update attendance.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const selectedEmployee = employees.find((employee) => employee._id === filters.empId);
-  const selectedDepartment = departments.find(
-    (department) => department._id === filters.deptId,
-  );
-  const presentRate = summary.total
-    ? `${Math.round((summary.PRESENT / summary.total) * 100)}%`
-    : "0%";
+  const handleQuickStatusUpdate = async (record, attendanceStatus) => {
+    const previousStatus = record.attendanceStatus;
+
+    setRecords((current) =>
+      current.map((item) =>
+        item._id === record._id
+          ? {
+              ...item,
+              attendanceStatus,
+            }
+          : item,
+      ),
+    );
+
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/api/admin/attendance/edit/${record._id}`,
+        { attendanceStatus },
+        { headers: authHeaders },
+      );
+      toast.success(`Marked ${record.empId?.name || "employee"} as ${attendanceStatus}.`);
+      fetchSummary(filters.deptId);
+    } catch (error) {
+      setRecords((current) =>
+        current.map((item) =>
+          item._id === record._id
+            ? {
+                ...item,
+                attendanceStatus: previousStatus,
+              }
+            : item,
+        ),
+      );
+      toast.error(error?.response?.data?.message || "Unable to update status.");
+    }
+  };
 
   const handleSwitchToEmployee = (empId) => {
     const employee = employees.find((item) => item._id === empId);
-
     setViewMode("employee");
     setFilters((current) => ({
       ...current,
@@ -240,66 +265,31 @@ const AttendanceMgmt = () => {
   };
 
   return (
-    <div className="min-h-full bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.14),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_22%),linear-gradient(180deg,_#f8fbff_0%,_#eef4ff_100%)] p-6">
+    <div className="min-h-full bg-slate-100/70 p-4 sm:p-6">
       <Toaster position="top-right" />
 
-      <div className="space-y-6">
-        <section className="overflow-hidden rounded-[36px] border border-slate-200/70 bg-slate-950 px-6 py-7 text-white shadow-[0_30px_90px_-35px_rgba(15,23,42,0.7)]">
-          <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <section className="rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-200">
-                <Sparkles size={14} />
-                Admin Attendance Services
-              </div>
-              <h1 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-                Attendance command center for clean monitoring, fast edits, and
-                manual recovery
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-                Track attendance across the organization, switch between employee
-                and department routes, and keep records consistent with quick
-                summary insights and direct admin actions.
-              </p>
+              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Attendance Management</h1>
+              <p className="mt-1 text-sm text-slate-500">Monitor, mark and update attendance records in real time.</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-emerald-400/15 p-3 text-emerald-300">
-                    <UserRound size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-300">Focused employee</p>
-                    <p className="mt-1 text-lg font-semibold text-white">
-                      {selectedEmployee?.name || "All employees"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-sky-400/15 p-3 text-sky-300">
-                    <Building2 size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-300">Department focus</p>
-                    <p className="mt-1 text-lg font-semibold text-white">
-                      {selectedDepartment?.deptName || "Organization-wide"}
-                    </p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-400">
-                      Present rate {presentRate}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setManualOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              <Plus size={16} />
+              Mark Attendance
+            </button>
           </div>
         </section>
 
-        <AttendanceSummaryCards summary={summary} loading={summaryLoading} />
+        <AttendanceSummary summary={summary} loading={summaryLoading} />
 
-        <AttendanceToolbar
+        <AttendanceFilters
           viewMode={viewMode}
           setViewMode={setViewMode}
           filters={filters}
@@ -308,12 +298,8 @@ const AttendanceMgmt = () => {
           setSummaryMonth={setSummaryMonth}
           employees={employees}
           departments={departments}
-          onRefresh={() => {
-            fetchAttendance();
-            fetchSummary(filters.deptId);
-          }}
-          onOpenManual={() => setManualOpen(true)}
           loading={tableLoading || summaryLoading}
+          onRefresh={refreshAllData}
         />
 
         <AttendanceTable
@@ -321,13 +307,13 @@ const AttendanceMgmt = () => {
           loading={tableLoading}
           emptyMessage={emptyMessage}
           onEdit={setEditRecord}
+          onQuickStatusUpdate={handleQuickStatusUpdate}
           onSwitchToEmployee={handleSwitchToEmployee}
           onSwitchToDepartment={handleSwitchToDepartment}
         />
       </div>
 
-      <AttendanceFormModal
-        key={`manual-${manualOpen ? "open" : "closed"}`}
+      <AttendanceForm
         isOpen={manualOpen}
         mode="manual"
         employees={employees}
@@ -337,8 +323,7 @@ const AttendanceMgmt = () => {
         submitting={submitting}
       />
 
-      <AttendanceFormModal
-        key={editRecord?._id || "edit-closed"}
+      <AttendanceForm
         isOpen={Boolean(editRecord)}
         mode="edit"
         record={editRecord}
