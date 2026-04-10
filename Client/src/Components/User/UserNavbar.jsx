@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiCalendar, FiClock, FiGrid, FiHome, FiLogOut, FiUser } from "react-icons/fi";
+import { FiHome, FiLogOut } from "react-icons/fi";
 
 const UserNavbar = () => {
   const navigate = useNavigate();
@@ -17,16 +17,7 @@ const UserNavbar = () => {
     navigate("/");
   };
 
-  const navItems = useMemo(
-    () => [
-      { name: "Dashboard", path: "/user/dashboard", icon: FiGrid },
-      { name: "Home", path: "/user/home", icon: FiHome },
-      { name: "Attendance", path: "/user/attendance", icon: FiClock },
-      { name: "Leave", path: "/user/leave", icon: FiCalendar },
-      { name: "Calendar", path: "/user/calendar", icon: FiCalendar },
-    ],
-    [],
-  );
+  const navItems = useMemo(() => [{ name: "Home", path: "/user/home", icon: FiHome }], []);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-xl md:px-8">
@@ -74,17 +65,6 @@ const UserNavbar = () => {
             <p className="text-xs text-slate-500">Live Time</p>
             <p className="text-sm font-semibold text-slate-800">{time.toLocaleTimeString()}</p>
           </div>
-
-          <NavLink
-            to="/user/profile"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-200 hover:text-indigo-600"
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-semibold text-white shadow">
-              U
-            </span>
-            <span className="hidden sm:block">Profile</span>
-            <FiUser className="sm:hidden" />
-          </NavLink>
 
           <button
             onClick={handleLogout}
