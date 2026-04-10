@@ -51,9 +51,26 @@ const userSchema = mongoose.Schema(
     },
 
     leaves: {
-      total: { type: Number, default: 0 },
-      used: { type: Number, default: 0 },
-      remaining: { type: Number, default: 0 },
+      CL: {
+        total: { type: Number, default: 10 },
+        used: { type: Number, default: 0 },
+        remaining: { type: Number, default: 10 },
+      },
+      SL: {
+        total: { type: Number, default: 8 },
+        used: { type: Number, default: 0 },
+        remaining: { type: Number, default: 8 },
+      },
+      PL: {
+        total: { type: Number, default: 15 },
+        used: { type: Number, default: 0 },
+        remaining: { type: Number, default: 15 },
+      },
+      LOP: {
+        total: { type: Number, default: 0 },
+        used: { type: Number, default: 0 },
+        remaining: { type: Number, default: 0 },
+      },
     },
 
     gender: {

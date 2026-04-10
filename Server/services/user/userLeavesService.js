@@ -1,28 +1,41 @@
 const leaveModel = require("../../models/leavesModel");
+const leaveBalanceModel = require("../../models/leavesBalanceModel");
 const mongoose = require("mongoose");
 
 const applyLeaveService = async (body, user) => {
-  const { reason, leaveDates } = body;
+  const { reason, leaveDates, leaveType } = body;
 
+  // ✅ Basic Validation
   if (
     !reason ||
     !leaveDates ||
+    !leaveType ||
     !Array.isArray(leaveDates) ||
     leaveDates.length === 0
   ) {
     return {
-      status: 404,
+      status: 400,
       success: false,
-      message: "Reason and leave dates are required",
+      message: "Reason, leave type and leave dates are required",
+    };
+  }
+
+  // ✅ Validate leaveType
+  const validTypes = ["CL", "SL", "PL", "LOP"];
+  if (!validTypes.includes(leaveType)) {
+    return {
+      status: 400,
+      success: false,
+      message: "Invalid leave type",
     };
   }
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
   for (const d of leaveDates) {
     const date = new Date(d);
-    date.setHours(0, 0, 0, 0);
+    date.setUTCHours(0, 0, 0, 0);
 
     if (date <= today) {
       return {
@@ -33,11 +46,11 @@ const applyLeaveService = async (body, user) => {
     }
   }
 
-  //NORMALIZE AND SORT THE DATES
+  // ✅ Normalize & Sort
   const normalizedDates = leaveDates
     .map((d) => {
       const date = new Date(d);
-      date.setHours(0, 0, 0, 0);
+      date.setUTCHours(0, 0, 0, 0);
       return date;
     })
     .sort((a, b) => a - b);
@@ -46,6 +59,7 @@ const applyLeaveService = async (body, user) => {
   const endDate = normalizedDates[normalizedDates.length - 1];
   const totalDays = normalizedDates.length;
 
+  // ✅ Check overlapping leave
   const existingLeave = await leaveModel.findOne({
     empId: user._id,
     leaveDates: { $in: normalizedDates },
@@ -60,9 +74,35 @@ const applyLeaveService = async (body, user) => {
     };
   }
 
+  // ✅ Check Leave Balance (except LOP)
+// ✅ Check Leave Balance (except LOP)
+if (leaveType !== "LOP") {
+
+  let balance = await leaveBalanceModel.findOne({ empId: user._id });
+
+  // 🔥 PLACE FIX HERE (AUTO CREATE)
+  if (!balance) {
+    balance = await leaveBalanceModel.create({
+      empId: user._id,
+      CL: { total: 6, used: 0, remaining: 6 },
+      SL: { total: 6, used: 0, remaining: 6 },
+      PL: { total: 12, used: 0, remaining: 12 }
+    });
+  }
+
+  if (balance[leaveType].remaining < totalDays) {
+    return {
+      status: 400,
+      success: false,
+      message: `Not enough ${leaveType} balance`,
+    };
+  }
+}
+  // ✅ Create Leave
   const leave = await leaveModel.create({
     empId: user._id,
     deptId: user.dept,
+    leaveType: leaveType,
     reason,
     leaveDates: normalizedDates,
     startDate,

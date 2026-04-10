@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const leavesModel = require("../../models/leavesModel");
 const attendanceModel = require("../../models/attendanceModel");
+const leaveBalanceModel = require("../../models/leavesBalanceModel")
 const adminCheck = require("../../utils/adminCheck");
 
 //GET ALL LEAVES
@@ -113,12 +114,43 @@ const approveLeaveService = async (leaveId, admin) => {
     };
   }
 
+  // 🔥 STEP 1: Deduct Leave Balance (except LOP)
+  if (leave.leaveType !== "LOP") {
+    const balance = await leaveBalanceModel.findOne({ empId: leave.empId });
+
+    if (!balance) {
+      return {
+        status: 404,
+        success: false,
+        message: "Leave balance not found",
+      };
+    }
+
+    const type = leave.leaveType;
+    const days = leave.totalDays;
+
+    if (balance[type].remaining < days) {
+      return {
+        status: 400,
+        success: false,
+        message: `Insufficient ${type} balance`,
+      };
+    }
+
+    balance[type].used += days;
+    balance[type].remaining -= days;
+
+    await balance.save();
+  }
+
+  // 🔥 STEP 2: Approve Leave
   leave.leaveStatus = "APPROVED";
   await leave.save();
 
+  // 🔥 STEP 3: Mark Attendance as LEAVE
   for (const date of leave.leaveDates) {
     const day = new Date(date);
-    day.setHours(0, 0, 0, 0);
+    day.setUTCHours(0, 0, 0, 0);
 
     await attendanceModel.findOneAndUpdate(
       {
@@ -133,7 +165,7 @@ const approveLeaveService = async (leaveId, admin) => {
         checkInTime: null,
         checkOutTime: null,
       },
-      { upsert: true, new: true },
+      { upsert: true, new: true }
     );
   }
 

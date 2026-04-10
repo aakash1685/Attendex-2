@@ -6,8 +6,6 @@ const { OFFICE_LOCATION } = require("../../config/officeConfig");
 const getClientIp = (req) =>
   req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
 
-
-
 const checkInService = async (req) => {
   try {
     //GET DATA
@@ -16,12 +14,12 @@ const checkInService = async (req) => {
     const deptId = req.user.dept;
 
     if (!deptId) {
-  return {
-    status: 400,
-    success: false,
-    message: "Department not assigned to user",
-  };
-}
+      return {
+        status: 400,
+        success: false,
+        message: "Department not assigned to user",
+      };
+    }
 
     if (!latitude || !longitude) {
       return {
@@ -64,20 +62,20 @@ const checkInService = async (req) => {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     // FIND TODAYS ATTENDNCE
-    let attendance = await attendanceModel.findOne({
-      empId,
-      date: today,
-    });
-    if (!attendance) {
-      attendance = new attendanceModel({
-        empId,
-        deptId,
-        date: today,
-      });
-    }
+    const attendance = await attendanceModel.findOneAndUpdate(
+      { empId, date: today },
+      {
+        $setOnInsert: {
+          empId,
+          deptId,
+          date: today,
+        },
+      },
+      { upsert: true, new: true },
+    );
     if (attendance.checkInTime) {
       return {
         status: 400,
@@ -88,6 +86,7 @@ const checkInService = async (req) => {
 
     //SAVE CHECK-IN
     attendance.checkInTime = new Date();
+    attendance.checkOutTime = null;
     attendance.attendanceStatus = "PRESENT";
 
     await attendance.save();

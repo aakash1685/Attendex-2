@@ -45,7 +45,7 @@ const getAllDeptService = async (admin) => {
     };
   }
 
-  const dept = await deptModel.find({ activeStatus: true });
+  const dept = await deptModel.find();
   return {
     success: true,
     status: 200,
@@ -84,7 +84,7 @@ const updateDeptService = async (deptId, data, admin) => {
   if (!admin || admin.role !== "ADMIN") {
     return {
       success: false,
-      status: 404,
+      status: 403, // ✅ FIXED
       message: "Only admin can access",
     };
   }
@@ -98,25 +98,39 @@ const updateDeptService = async (deptId, data, admin) => {
     };
   }
 
-  if (!data.deptName) {
+  if (!data.deptName || !data.deptName.trim()) {
     return {
-      success: true,
-      status: 404,
+      success: false, // ✅ FIXED
+      status: 400,    // ✅ FIXED
       message: "Department name is required!",
+    };
+  }
+
+  // ✅ Optional (best practice)
+  const existing = await deptModel.findOne({
+    deptName: data.deptName,
+    _id: { $ne: deptId },
+  });
+
+  if (existing) {
+    return {
+      success: false,
+      status: 409,
+      message: "Department already exists",
     };
   }
 
   const updatedDept = await deptModel.findByIdAndUpdate(
     deptId,
-    { $set: data },
-    { new: true },
+    { $set: { deptName: data.deptName } },
+    { new: true }
   );
 
   return {
     success: true,
     status: 200,
     message: "Department updated successfully!",
-    updatedDept,
+    data: updatedDept, // ✅ consistent naming
   };
 };
 
@@ -158,11 +172,44 @@ const activateDeptService = async (deptId, admin) => {
   };
 };
 
+const toggleDeptStatusService = async (deptId, admin) => {
+  if (!admin || admin.role !== "ADMIN") {
+    return {
+      success: false,
+      status: 403,
+      message: "Only admin can access",
+    };
+  }
+
+  const dept = await deptModel.findById(deptId);
+
+  if (!dept) {
+    return {
+      success: false,
+      status: 404,
+      message: "Department not found",
+    };
+  }
+
+  // 🔥 Toggle logic
+  dept.activeStatus = !dept.activeStatus;
+
+  await dept.save();
+
+  return {
+    success: true,
+    status: 200,
+    message: `Department ${
+      dept.activeStatus ? "activated" : "deactivated"
+    } successfully`,
+    data: dept,
+  };
+};
+
 module.exports = {
   getAllDeptService,
   getDeptByIdService,
   createDeptService,
   deactiveDeptService,
-  updateDeptService,
-  activateDeptService,
+  toggleDeptStatusService
 };

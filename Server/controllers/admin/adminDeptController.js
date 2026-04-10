@@ -3,8 +3,7 @@ const {
   getDeptByIdService,
   createDeptService,
   updateDeptService,
-  deactiveDeptService,
-  activateDeptService,
+  toggleDeptStatusService
 } = require("../../services/admin/adminDeptService");
 
 const createDeptController = async (req, res) => {
@@ -51,10 +50,18 @@ const getDeptByIdController = async (req, res) => {
 const updateDeptController = async (req, res) => {
   try {
     const { deptId } = req.params;
-    const result = await updateDeptService(deptId, req.body, req.admin);
+
+    const result = await updateDeptService(
+      deptId,
+      req.body,
+      req.admin
+    );
+
     return res.status(result.status).json(result);
+
   } catch (error) {
     console.log("ERROR: ", error);
+
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -62,27 +69,17 @@ const updateDeptController = async (req, res) => {
   }
 };
 
-const deactiveDeptController = async (req, res) => {
+const toggleDeptStatusController = async (req, res) => {
   try {
     const { deptId } = req.params;
-    const result = await deactiveDeptService(deptId, req.admin);
-    res.status(result.status).json(result);
-  } catch (error) {
-    console.log("ERROR: ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
 
-const activateDeptController = async (req, res) => {
-  try {
-    const { deptId } = req.params;
-    const result = await activateDeptService(deptId, req.admin);
-    res.status(result.status).json(result);
+    const result = await toggleDeptStatusService(deptId, req.admin);
+
+    return res.status(result.status).json(result);
+
   } catch (error) {
     console.log("ERROR: ", error);
+
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -95,6 +92,5 @@ module.exports = {
   getDeptByIdController,
   createDeptController,
   updateDeptController,
-  deactiveDeptController,
-  activateDeptController,
+  toggleDeptStatusController
 };

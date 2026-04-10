@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-router.use("/auth", require("../../routes/admin/adminAuthRouter"));
-router.use("/user", require("../../routes/admin/adminUserRouter"));
-router.use("/dept", require("../../routes/admin/adminDeptRouter"));
-router.use("/desig", require("../../routes/admin/adminDesigRouter"));
-router.use("/dept-calendar", require("../../routes/admin/adminDeptCalendarRouter"));
-router.use("/leave", require("../../routes/admin/adminLeaveRouter"));
+router.use("/auth", require("./adminAuthRouter"));
+router.use("/user", require("./adminUserRouter"));
+router.use("/dept", require("./adminDeptRouter"));
+router.use("/desig", require("./adminDesigRouter"));
+router.use("/dept-calendar", require("./adminDeptCalendarRouter"));
+router.use("/leave", require("./adminLeaveRouter"));
 router.use("/attendance", require("./adminAttendanceRouter"));
 
 module.exports = router;

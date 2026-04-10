@@ -13,7 +13,14 @@ const leavesSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "dept",
       required: true,
-      index: true,
+      index: true
+    },
+
+    leaveType : {
+      type : String,
+      enum : ["CL", "SL", "PL", "LOP"],
+      required : true,
+      index : true
     },
 
     reason: {

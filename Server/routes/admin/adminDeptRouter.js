@@ -8,13 +8,14 @@ const {
   updateDeptController,
   deactiveDeptController,
   activateDeptController,
+  toggleDeptStatusController
 } = require("../../controllers/admin/adminDeptController");
 
 router.post("/create", adminProtect, createDeptController);
 router.get("/", adminProtect, getAllDeptController);
 router.get("/:deptId", adminProtect, getDeptByIdController);
 router.put("/edit/:deptId", adminProtect, updateDeptController);
-router.patch("/deactive/:deptId", adminProtect, deactiveDeptController);
-router.patch("/activate/:deptId", adminProtect, activateDeptController);
+
+router.patch("/toggle-status/:deptId", adminProtect, toggleDeptStatusController);
 
 module.exports = router;
