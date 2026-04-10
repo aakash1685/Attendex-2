@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiCalendar, FiClock, FiHome, FiLogOut, FiUser } from "react-icons/fi";
+import { FiCalendar, FiClock, FiGrid, FiHome, FiLogOut, FiUser } from "react-icons/fi";
 
 const UserNavbar = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ const UserNavbar = () => {
 
   const navItems = useMemo(
     () => [
+      { name: "Dashboard", path: "/user/dashboard", icon: FiGrid },
       { name: "Home", path: "/user/home", icon: FiHome },
       { name: "Attendance", path: "/user/attendance", icon: FiClock },
       { name: "Leave", path: "/user/leave", icon: FiCalendar },
@@ -47,7 +48,7 @@ const UserNavbar = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm lg:justify-center">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
