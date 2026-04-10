@@ -18,18 +18,15 @@ const UserNavabr = () => {
   ];
 
   return (
-    <nav className="w-full bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-10 py-3 flex justify-between items-center backdrop-blur-md">
+    <nav className="w-full sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-gray-200 px-10 py-3 flex justify-between items-center shadow-sm">
       
-      {/* Logo */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 bg-blue-600 rounded-xl shadow-md"></div>
-        <h1 className="text-lg font-semibold text-gray-800 tracking-wide">
-          Attendex Portal
-        </h1>
-      </div>
+      {/* Brand */}
+      <h1 className="text-xl font-semibold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        Attendex Portal
+      </h1>
 
       {/* Navigation */}
-      <div className="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
+      <div className="flex items-center gap-2 bg-gray-100/70 backdrop-blur-md p-1 rounded-xl border border-gray-200">
         {navItems.map((item, index) => (
           <NavLink
             key={index}
@@ -38,8 +35,8 @@ const UserNavabr = () => {
               `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
               ${
                 isActive
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-blue-600"
+                  ? "bg-white text-blue-600 shadow-sm border border-gray-200"
+                  : "text-gray-600 hover:text-blue-600 hover:bg-white/60"
               }`
             }
           >
@@ -53,7 +50,7 @@ const UserNavabr = () => {
         
         {/* Avatar */}
         <NavLink to="/user/profile">
-          <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow cursor-pointer hover:scale-105 transition">
+          <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md cursor-pointer hover:scale-105 hover:shadow-lg transition-all">
             U
           </div>
         </NavLink>
@@ -61,7 +58,7 @@ const UserNavabr = () => {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="px-4 py-2 text-sm font-medium rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
+          className="px-4 py-2 text-sm font-medium rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
         >
           Logout
         </button>
