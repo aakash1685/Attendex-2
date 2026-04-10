@@ -1,34 +1,49 @@
 import React from "react";
 import LeaveRow from "./LeaveRow";
 
-const LeaveTable = ({ leaves, refresh }) => {
+const LeaveTable = ({ leaves, loading, refresh, onLeaveUpdate, onLeaveDelete }) => {
   return (
-<div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-      <table className="w-full text-sm">
-<thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">          <tr>
-            <th className="p-4">Employee</th>
-            <th>Dept</th>
-            <th>Type</th>
-            <th>Days</th>
-            <th>Status</th>
-            <th className="text-center">Actions</th>
-          </tr>
-        </thead>
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+            <tr>
+              <th className="px-4 py-3 text-left">Employee</th>
+              <th className="px-4 py-3 text-left">Department</th>
+              <th className="px-4 py-3 text-left">Type</th>
+              <th className="px-4 py-3 text-left">Days</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {leaves.map((leave) => (
-            <LeaveRow key={leave._id} leave={leave} refresh={refresh} />
-          ))}
-          {leaves.length === 0 && (
-  <tr>
-    <td colSpan="6" className="text-center py-10 text-gray-400">
-      🚫 No Leaves Found
-    </td>
-  </tr>
-)}
-        </tbody>
-      </table>
-
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
+                  Loading leaves...
+                </td>
+              </tr>
+            ) : leaves.length ? (
+              leaves.map((leave) => (
+                <LeaveRow
+                  key={leave._id}
+                  leave={leave}
+                  refresh={refresh}
+                  onLeaveUpdate={onLeaveUpdate}
+                  onLeaveDelete={onLeaveDelete}
+                />
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="px-4 py-8 text-center text-slate-400">
+                  No leaves found for current filters.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

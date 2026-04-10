@@ -2,37 +2,43 @@ import React, { useState } from "react";
 import LeaveActions from "./LeaveAction";
 import LeaveModal from "./LeaveModel";
 
-const LeaveRow = ({ leave, refresh }) => {
-  const [open, setOpen] = useState(false);
+const statusBadgeClasses = {
+  APPROVED: "bg-emerald-100 text-emerald-700",
+  PENDING: "bg-amber-100 text-amber-700",
+  REJECTED: "bg-rose-100 text-rose-700",
+};
 
-  const badge = {
-    APPROVED: "bg-emerald-100 text-emerald-600",
-    PENDING: "bg-amber-100 text-amber-600",
-    REJECTED: "bg-rose-100 text-rose-600",
-  };
+const LeaveRow = ({ leave, refresh, onLeaveUpdate, onLeaveDelete }) => {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
       <tr
-className="border-t hover:bg-indigo-50/60 cursor-pointer transition duration-200"        onClick={() => setOpen(true)}
+        className="cursor-pointer border-t border-slate-100 transition hover:bg-indigo-50/50"
+        onClick={() => setOpen(true)}
       >
-        <td className="p-4 font-medium">{leave.empId?.name}</td>
-        <td>{leave.deptId?.name}</td>
-        <td>{leave.leaveType}</td>
-        <td>{leave.totalDays}</td>
-        <td>
-          <span className={`px-3 py-1 rounded-full text-xs ${badge[leave.leaveStatus]}`}>
-            {leave.leaveStatus}
+        <td className="px-4 py-3 font-medium text-slate-700">{leave.empId?.name || "-"}</td>
+        <td className="px-4 py-3 text-slate-600">{leave.deptId?.name || "-"}</td>
+        <td className="px-4 py-3 text-slate-600">{leave.leaveType || "-"}</td>
+        <td className="px-4 py-3 text-slate-600">{leave.totalDays || 0}</td>
+        <td className="px-4 py-3">
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClasses[leave.leaveStatus] || "bg-slate-100 text-slate-600"}`}
+          >
+            {leave.leaveStatus || "UNKNOWN"}
           </span>
         </td>
-        <td onClick={(e) => e.stopPropagation()}>
-          <LeaveActions leave={leave} refresh={refresh} />
+        <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+          <LeaveActions
+            leave={leave}
+            refresh={refresh}
+            onLeaveUpdate={onLeaveUpdate}
+            onLeaveDelete={onLeaveDelete}
+          />
         </td>
       </tr>
 
-      {open && (
-        <LeaveModal leave={leave} onClose={() => setOpen(false)} />
-      )}
+      {open ? <LeaveModal leave={leave} onClose={() => setOpen(false)} /> : null}
     </>
   );
 };
