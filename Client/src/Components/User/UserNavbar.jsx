@@ -19,7 +19,6 @@ const UserNavbar = () => {
 
   const navItems = useMemo(
     () => [
-      { name: "Dashboard", path: "/user/dashboard", icon: FiGrid },
       { name: "Home", path: "/user/home", icon: FiHome },
       { name: "Attendance", path: "/user/attendance", icon: FiClock },
       { name: "Leave", path: "/user/leave", icon: FiCalendar },
