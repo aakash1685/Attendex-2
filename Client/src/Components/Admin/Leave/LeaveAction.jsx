@@ -19,7 +19,7 @@ const LeaveActions = ({ leave, refresh, onLeaveUpdate, onLeaveDelete }) => {
     onLeaveUpdate?.(leave._id, { leaveStatus: "APPROVED" });
 
     try {
-      await axios.patch(`${API_BASE_URL}/api/admin/leaves/approve/${leave._id}`, null, {
+      await axios.patch(`${API_BASE_URL}/api/admin/leave/approve/${leave._id}`, null, {
         headers: authHeaders,
       });
 
@@ -39,7 +39,7 @@ const LeaveActions = ({ leave, refresh, onLeaveUpdate, onLeaveDelete }) => {
     onLeaveUpdate?.(leave._id, { leaveStatus: "REJECTED" });
 
     try {
-      await axios.patch(`${API_BASE_URL}/api/admin/leaves/reject/${leave._id}`, null, {
+      await axios.patch(`${API_BASE_URL}/api/admin/leave/reject/${leave._id}`, null, {
         headers: authHeaders,
       });
 
@@ -61,7 +61,7 @@ const LeaveActions = ({ leave, refresh, onLeaveUpdate, onLeaveDelete }) => {
     onLeaveDelete?.(leave._id);
 
     try {
-      await axios.delete(`${API_BASE_URL}/api/admin/leaves/delete/${leave._id}`, {
+      await axios.delete(`${API_BASE_URL}/api/admin/leave/delete/${leave._id}`, {
         headers: authHeaders,
       });
 
