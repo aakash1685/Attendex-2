@@ -45,12 +45,12 @@ const UserMgmt = () => {
         const deptName =
           (typeof item.dept === "object" ? item.dept?.deptName : null) ||
           departments.find((dept) => dept._id === deptId)?.deptName ||
-          "";
+          "-";
 
         const designationName =
           (typeof item.designation === "object" ? item.designation?.desigName : null) ||
           designations.find((designation) => designation._id === designationId)?.desigName ||
-          "";
+          "-";
 
         return {
           ...item,
@@ -110,39 +110,42 @@ const UserMgmt = () => {
   const handleSave = async (formData) => {
     setSubmitting(true);
 
-    const payload = {
-      name: formData.name,
-      email: formData.email,
-      mobileNo: formData.mobileNo,
-      address: formData.address,
-      dept: formData.dept,
-      designation: formData.designation,
-      gender: formData.gender,
-      salary: Number(formData.salary || 0),
-      bank: {
-        accNo: formData.accNo,
-        ifsc: formData.ifsc,
-      },
-      leaves: {
-        CL: { total: Number(formData.CL || 0), used: 0, remaining: Number(formData.CL || 0) },
-        SL: { total: Number(formData.SL || 0), used: 0, remaining: Number(formData.SL || 0) },
-        PL: { total: Number(formData.PL || 0), used: 0, remaining: Number(formData.PL || 0) },
-        LOP: { total: Number(formData.LOP || 0), used: 0, remaining: Number(formData.LOP || 0) },
-      },
-      activeStatus: formData.activeStatus,
-    };
-
     try {
-      if (editUser?._id) {
+      const isEdit = Boolean(editUser?._id);
+      const payload = new FormData();
+
+      payload.append("name", formData.name);
+      payload.append("email", formData.email);
+      payload.append("mobileNo", formData.mobileNo);
+      payload.append("gender", formData.gender);
+      payload.append("address", formData.address || "");
+      payload.append("dept", formData.dept);
+      payload.append("designation", formData.designation);
+      payload.append("salary", String(Number(formData.salary || 0)));
+      payload.append("bank", JSON.stringify(formData.bank));
+
+      if (formData.profilePicFile) {
+        payload.append("profilePic", formData.profilePicFile);
+      } else if (formData.profilePic) {
+        payload.append("profilePic", formData.profilePic);
+      }
+
+      if (isEdit) {
         await axios.put(`${API_BASE_URL}/api/admin/user/edit/${editUser._id}`, payload, {
-          headers: authHeaders,
+          headers: {
+            ...authHeaders,
+            "Content-Type": "multipart/form-data",
+          },
         });
-        toast.success("User updated successfully.");
+        toast.success("User updated");
       } else {
         await axios.post(`${API_BASE_URL}/api/admin/user/create`, payload, {
-          headers: authHeaders,
+          headers: {
+            ...authHeaders,
+            "Content-Type": "multipart/form-data",
+          },
         });
-        toast.success("User created successfully.");
+        toast.success("User created");
       }
 
       setIsOpen(false);
@@ -155,14 +158,14 @@ const UserMgmt = () => {
     }
   };
 
-  const handleDelete = async (user) => {
+  const handleDeactivate = async (user) => {
     setTogglingId(user._id);
     try {
       await axios.patch(`${API_BASE_URL}/api/admin/user/deactive-user/${user._id}`, {}, { headers: authHeaders });
-      toast.success("User removed successfully.");
+      toast.success("User deactivated");
       await fetchUsers();
     } catch (deleteError) {
-      toast.error(deleteError?.response?.data?.message || "Failed to delete user.");
+      toast.error(deleteError?.response?.data?.message || "Failed to deactivate user.");
     } finally {
       setTogglingId("");
     }
@@ -178,7 +181,7 @@ const UserMgmt = () => {
         { headers: authHeaders },
       );
 
-      toast.success(`User ${user.activeStatus ? "deactivated" : "activated"} successfully.`);
+      toast.success(`User ${user.activeStatus ? "deactivated" : "activated"}`);
       await fetchUsers();
     } catch (toggleError) {
       toast.error(toggleError?.response?.data?.message || "Failed to toggle user status.");
@@ -218,7 +221,7 @@ const UserMgmt = () => {
               className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               <Plus size={16} />
-              Add New
+              Add User
             </button>
           </div>
         </section>
@@ -241,7 +244,9 @@ const UserMgmt = () => {
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept._id} value={dept._id}>{dept.deptName}</option>
+                <option key={dept._id} value={dept._id}>
+                  {dept.deptName}
+                </option>
               ))}
             </select>
           </div>
@@ -255,7 +260,7 @@ const UserMgmt = () => {
             setEditUser(user);
             setIsOpen(true);
           }}
-          onDelete={handleDelete}
+          onDeactivate={handleDeactivate}
           onToggleStatus={handleToggleStatus}
           togglingId={togglingId}
         />
