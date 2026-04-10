@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Toaster, toast } from "react-hot-toast";
-import LeaveSummary from "../../Components/Admin/Leave/LeaveSummary";
-import LeaveToolbar from "../../Components/Admin/Leave/LeaveToolbar";
+import LeaveFilters from "../../Components/Admin/Leave/LeaveFilters";
 import LeaveTable from "../../Components/Admin/Leave/LeaveTable";
+import SummaryCards from "../../Components/Admin/Leave/SummaryCards";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -21,6 +21,17 @@ const initialFilters = {
   toDate: "",
 };
 
+const buildLeaveQuery = (filters) => {
+  const params = {};
+
+  if (filters.deptId) params.deptId = filters.deptId;
+  if (filters.leaveStatus) params.leaveStatus = filters.leaveStatus;
+  if (filters.fromDate) params.fromDate = filters.fromDate;
+  if (filters.toDate) params.toDate = filters.toDate;
+
+  return params;
+};
+
 const LeavesMgmt = () => {
   const [leaves, setLeaves] = useState([]);
   const [summary, setSummary] = useState(initialSummary);
@@ -30,12 +41,19 @@ const LeavesMgmt = () => {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
+  const hasFetchedRef = useRef(false);
 
   const itemsPerPage = 8;
 
-  const authHeaders = useMemo(() => {
+  const axiosClient = useMemo(() => {
     const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token}` };
+
+    return axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }, []);
 
   const fetchLeaves = useCallback(async () => {
@@ -43,32 +61,34 @@ const LeavesMgmt = () => {
     setError("");
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/leaves/`, {
-        headers: authHeaders,
-        params: filters,
+      const response = await axiosClient.get("/api/admin/leave", {
+        params: buildLeaveQuery(filters),
       });
 
-      setLeaves(response.data?.leaves || []);
+      const nextLeaves = Array.isArray(response.data?.leaves) ? response.data.leaves : [];
+      setLeaves(nextLeaves);
       setPage(1);
     } catch (err) {
       if (err?.response?.status === 404) {
         setLeaves([]);
         setError("");
-      } else {
-        setError(err?.response?.data?.message || "Failed to fetch leaves.");
-        toast.error(err?.response?.data?.message || "Failed to fetch leaves.");
+        return;
       }
+
+      const message = err?.response?.data?.message || "Failed to fetch leaves.";
+      setError(message);
+      setLeaves([]);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL, authHeaders, filters]);
+  }, [axiosClient, filters]);
 
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/leaves/summary`, {
-        headers: authHeaders,
+      const response = await axiosClient.get("/api/admin/leave/summary", {
         params: filters.deptId ? { deptId: filters.deptId } : {},
       });
 
@@ -82,21 +102,21 @@ const LeavesMgmt = () => {
     } finally {
       setSummaryLoading(false);
     }
-  }, [API_BASE_URL, authHeaders, filters.deptId]);
+  }, [axiosClient, filters.deptId]);
 
   const fetchDepartments = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/dept/`, {
-        headers: authHeaders,
-      });
-
+      const response = await axiosClient.get("/api/admin/dept");
       setDepartments(response.data?.result?.data || []);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to load departments.");
     }
-  }, [API_BASE_URL, authHeaders]);
+  }, [axiosClient]);
 
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+
+    hasFetchedRef.current = true;
     fetchDepartments();
   }, [fetchDepartments]);
 
@@ -106,43 +126,30 @@ const LeavesMgmt = () => {
   }, [fetchLeaves, fetchSummary]);
 
   const totalPages = Math.ceil(leaves.length / itemsPerPage);
-
-  const paginatedLeaves = leaves.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage,
-  );
-
-  const handleLeaveUpdate = (leaveId, updates) => {
-    setLeaves((currentLeaves) =>
-      currentLeaves.map((leave) =>
-        leave._id === leaveId ? { ...leave, ...updates } : leave,
-      ),
-    );
-  };
-
-  const handleLeaveDelete = (leaveId) => {
-    setLeaves((currentLeaves) => currentLeaves.filter((leave) => leave._id !== leaveId));
-  };
+  const paginatedLeaves = leaves.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const handleRefreshAfterAction = async () => {
     await Promise.all([fetchLeaves(), fetchSummary()]);
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-slate-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full bg-gradient-to-br from-slate-50 via-indigo-50 to-blue-50 p-4 sm:p-6 lg:p-8">
       <Toaster position="top-right" />
 
       <div className="mx-auto max-w-7xl space-y-6">
-        <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Leave Management</h1>
+        <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Leave Management</h1>
+          <p className="mt-1 text-sm text-slate-500">Track, filter and process employee leave requests.</p>
+        </div>
 
-        <LeaveSummary summary={summary} loading={summaryLoading} />
-
-        <LeaveToolbar
+        <LeaveFilters
           filters={filters}
           setFilters={setFilters}
           departments={departments}
           onApply={() => setPage(1)}
         />
+
+        <SummaryCards summary={summary} loading={summaryLoading} />
 
         {error ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -150,13 +157,7 @@ const LeavesMgmt = () => {
           </div>
         ) : null}
 
-        <LeaveTable
-          leaves={paginatedLeaves}
-          loading={loading}
-          refresh={handleRefreshAfterAction}
-          onLeaveUpdate={handleLeaveUpdate}
-          onLeaveDelete={handleLeaveDelete}
-        />
+        <LeaveTable leaves={paginatedLeaves} loading={loading} refresh={handleRefreshAfterAction} />
 
         {totalPages > 1 && (
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -168,10 +169,10 @@ const LeavesMgmt = () => {
                 <button
                   key={pageNumber}
                   onClick={() => setPage(pageNumber)}
-                  className={`rounded-lg px-3 py-1.5 text-sm transition ${
+                  className={`rounded-lg px-3 py-1.5 text-sm transition-all duration-200 ${
                     isActive
                       ? "bg-indigo-600 text-white shadow"
-                      : "bg-white text-slate-600 hover:bg-slate-100"
+                      : "bg-white text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100"
                   }`}
                 >
                   {pageNumber}
