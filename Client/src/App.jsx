@@ -20,6 +20,10 @@ import AdminCalendarDetail from "./Pages/Admin/CalendarDetails";
 import ProtectedRoute from "./Components/Admin/ProtectedRoute";
 import UserLayout from "./Pages/User/UserLayout";
 import UserHome from "./Pages/User/Home";
+import UserAttendance from "./Pages/User/Attendance";
+import UserCalendar from "./Pages/User/Calendar";
+import UserLeave from "./Pages/User/Leave";
+import UserProfile from "./Pages/User/Profile";
 
 const App = () => {
   return (
@@ -60,6 +64,10 @@ const App = () => {
         >
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<UserHome />} />
+          <Route path="attendance" element={<UserAttendance />} />
+          <Route path="calendar" element={<UserCalendar />} />
+          <Route path="leave" element={<UserLeave />} />
+          <Route path="profile" element={<UserProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
