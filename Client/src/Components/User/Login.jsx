@@ -67,7 +67,7 @@ const handleSubmit = async (e) => {
     localStorage.setItem("token", token);
     localStorage.setItem("role", "user");
 
-    navigate("/user/dashboard");
+    navigate("/user/home");
 
   } catch (err) {
     setErrorMsg(
