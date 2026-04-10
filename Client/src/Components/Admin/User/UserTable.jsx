@@ -11,7 +11,7 @@ const StatusBadge = ({ active }) => (
   </span>
 );
 
-const UserTable = ({ users, loading, error, onEdit, onDelete, onToggleStatus, togglingId }) => {
+const UserTable = ({ users, loading, error, onEdit, onDeactivate, onToggleStatus, togglingId }) => {
   if (loading) {
     return <div className="rounded-2xl bg-white p-6 text-sm text-slate-500 shadow-sm">Loading users...</div>;
   }
@@ -21,7 +21,7 @@ const UserTable = ({ users, loading, error, onEdit, onDelete, onToggleStatus, to
   }
 
   if (!users.length) {
-    return <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">No Data Found</div>;
+    return <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm">No Users Found</div>;
   }
 
   return (
@@ -31,9 +31,10 @@ const UserTable = ({ users, loading, error, onEdit, onDelete, onToggleStatus, to
           <tr>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Email</th>
-            <th className="px-4 py-3">Role</th>
+            <th className="px-4 py-3">Mobile</th>
             <th className="px-4 py-3">Department</th>
             <th className="px-4 py-3">Designation</th>
+            <th className="px-4 py-3">Salary</th>
             <th className="px-4 py-3">Status</th>
             <th className="px-4 py-3">Actions</th>
           </tr>
@@ -43,9 +44,10 @@ const UserTable = ({ users, loading, error, onEdit, onDelete, onToggleStatus, to
             <tr key={user._id} className="border-t border-slate-100 transition hover:bg-slate-50">
               <td className="px-4 py-3 font-medium text-slate-800">{user.name || "-"}</td>
               <td className="px-4 py-3 text-slate-600">{user.email || "-"}</td>
-              <td className="px-4 py-3 text-slate-600">Employee</td>
+              <td className="px-4 py-3 text-slate-600">{user.mobileNo || "-"}</td>
               <td className="px-4 py-3 text-slate-600">{user.deptName || "-"}</td>
               <td className="px-4 py-3 text-slate-600">{user.designationName || "-"}</td>
+              <td className="px-4 py-3 text-slate-600">{user.salary ?? 0}</td>
               <td className="px-4 py-3">
                 <StatusBadge active={Boolean(user.activeStatus)} />
               </td>
@@ -53,7 +55,7 @@ const UserTable = ({ users, loading, error, onEdit, onDelete, onToggleStatus, to
                 <UserActions
                   user={user}
                   onEdit={onEdit}
-                  onDelete={onDelete}
+                  onDeactivate={onDeactivate}
                   onToggleStatus={onToggleStatus}
                   toggling={togglingId === user._id}
                 />
