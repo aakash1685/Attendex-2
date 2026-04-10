@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = ({ onBack }) => {
   const navigate = useNavigate();
@@ -52,10 +52,9 @@ const handleSubmit = async (e) => {
     setErrors({});
     setErrorMsg("");
 
-    const res = await axios.post(
-      "http://localhost:5000/api/user/auth/login",
-      form
-    );
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+    const res = await axios.post(`${API_BASE_URL}/api/user/auth/login`, form);
 
     const token = res.data?.token;
 
@@ -174,9 +173,12 @@ const handleSubmit = async (e) => {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500 mt-4">
-            Access your attendance and leave records securely
-          </p>
+          <div className="mt-4 text-center">
+            <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+              Forgot password?
+            </Link>
+            <p className="mt-2 text-xs text-gray-500">Access your attendance and leave records securely</p>
+          </div>
         </div>
       </div>
     </div>

@@ -24,6 +24,8 @@ import UserAttendance from "./Pages/User/Attendance";
 import UserCalendar from "./Pages/User/Calendar";
 import UserLeave from "./Pages/User/Leave";
 import UserProfile from "./Pages/User/Profile";
+import ForgotPassword from "./Pages/User/ForgotPassword";
+import ResetPassword from "./Pages/User/ResetPassword";
 
 const App = () => {
   return (
@@ -31,6 +33,8 @@ const App = () => {
       <Routes>
         {/* COMMON ROUTES */}
         <Route path="/" element={<Landingpage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="*" element={<NotFoundPage />} />
 
      <Route
