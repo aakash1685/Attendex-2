@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { FiCalendar, FiClock, FiHome, FiLogOut, FiUser } from "react-icons/fi";
 
-const UserNavabr = () => {
+const UserNavbar = () => {
   const navigate = useNavigate();
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -10,64 +17,79 @@ const UserNavabr = () => {
     navigate("/");
   };
 
-  const navItems = [
-    { name: "Home", path: "/user/dashboard" },
-    { name: "Attendance", path: "/user/attendance" },
-    { name: "Leave", path: "/user/leave" },
-    { name: "Calendar", path: "/user/calendar" },
-  ];
+  const navItems = useMemo(
+    () => [
+      { name: "Home", path: "/user/home", icon: FiHome },
+      { name: "Attendance", path: "/user/attendance", icon: FiClock },
+      { name: "Leave", path: "/user/leave", icon: FiCalendar },
+      { name: "Calendar", path: "/user/calendar", icon: FiCalendar },
+    ],
+    [],
+  );
 
   return (
-    <nav className="w-full bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-10 py-3 flex justify-between items-center backdrop-blur-md">
-      
-      {/* Logo */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 bg-blue-600 rounded-xl shadow-md"></div>
-        <h1 className="text-lg font-semibold text-gray-800 tracking-wide">
-          Attendex Portal
-        </h1>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
-        {navItems.map((item, index) => (
-          <NavLink
-            key={index}
-            to={item.path}
-            className={({ isActive }) =>
-              `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-              ${
-                isActive
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-blue-600"
-              }`
-            }
-          >
-            {item.name}
-          </NavLink>
-        ))}
-      </div>
-
-      {/* Right Section */}
-      <div className="flex items-center gap-4">
-        
-        {/* Avatar */}
-        <NavLink to="/user/profile">
-          <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow cursor-pointer hover:scale-105 transition">
-            U
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-xl md:px-8">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-sm font-bold text-white shadow-md">
+              AX
+            </div>
+            <div>
+              <h1 className="text-base font-semibold tracking-wide text-slate-900">Attendex Portal</h1>
+              <p className="text-xs text-slate-500">Smart Employee Workspace</p>
+            </div>
           </div>
-        </NavLink>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm font-medium rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
-        >
-          Logout
-        </button>
+          <div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right lg:block">
+            <p className="text-xs text-slate-500">Live Time</p>
+            <p className="text-sm font-semibold text-slate-800">{time.toLocaleTimeString()}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-indigo-600 text-white shadow-md"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-indigo-600"
+                  }`
+                }
+              >
+                <Icon className="text-base" /> {item.name}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 sm:justify-end">
+          <NavLink
+            to="/user/profile"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-200 hover:text-indigo-600"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-semibold text-white shadow">
+              U
+            </span>
+            <span className="hidden sm:block">Profile</span>
+            <FiUser className="sm:hidden" />
+          </NavLink>
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+          >
+            <FiLogOut /> Logout
+          </button>
+        </div>
       </div>
     </nav>
   );
 };
 
-export default UserNavabr;
+export default UserNavbar;
