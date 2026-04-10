@@ -31,7 +31,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        // COMMON ROUTES
+        {/* COMMON ROUTES */}
         <Route path="/" element={<Landingpage />} />
         <Route path="*" element={<NotFoundPage />} />
 
