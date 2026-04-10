@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 
 // COMMON PAGES
 import Landingpage from "./Pages/Common Pages/LandingPage";
@@ -17,15 +17,9 @@ import AdminLayout from "./Pages/Admin/AdminLayout";
 import AdminCalendarDetail from "./Pages/Admin/CalendarDetails";
 
 // USER PAGES
-import UserDashBoard from "./Pages/User/DashBoard";
 import ProtectedRoute from "./Components/Admin/ProtectedRoute";
 import UserLayout from "./Pages/User/UserLayout";
 import UserHome from "./Pages/User/Home";
-import UserAttendance from './Pages/User/Attendance';
-import UserLeave from './Pages/User/Leave';
-import UserCalendar from './Pages/User/Calendar';
-import UserProfile from './Pages/User/Profile';
-import UserForgotPW from './Pages/User/ForgotPassword';
 
 const App = () => {
   return (
@@ -64,13 +58,8 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard" element={<UserDashBoard />} />
+          <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<UserHome />} />
-          <Route path="attendance" element={<UserAttendance />} />
-          <Route path="leave" element={<UserLeave />} />
-          <Route path="calendar" element={<UserCalendar />} />
-          <Route path="profile" element={<UserProfile />} />
-          <Route path="forgotpw" element={<UserForgotPW />} />
         </Route>
       </Routes>
     </BrowserRouter>
