@@ -1,9 +1,33 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { LogOut, Bell, Search } from "lucide-react";
+import { LogOut, Bell } from "lucide-react";
 
 const AdminNavbar = () => {
   const location = useLocation();
+
+  const adminProfile = useMemo(() => {
+    const fallbackProfile = {
+      name: "Admin",
+      email: "admin@attendex.com",
+    };
+
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) return fallbackProfile;
+
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const adminEmail = payload?.email || fallbackProfile.email;
+      const adminName = adminEmail.split("@")[0] || fallbackProfile.name;
+
+      return {
+        name: adminName.charAt(0).toUpperCase() + adminName.slice(1),
+        email: adminEmail,
+      };
+    } catch (error) {
+      return fallbackProfile;
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -34,24 +58,13 @@ const AdminNavbar = () => {
   };
 
   return (
-<div className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-64 right-0 z-20 overflow-hidden">      <div className="flex items-center gap-4">
+    <div className="fixed top-0 left-72 right-0 z-20 flex h-16 items-center justify-between overflow-hidden border-b border-gray-200 bg-white px-6">
+      <div className="flex items-center gap-4">
 
         {/* Title */}
         <h1 className="text-lg font-semibold text-gray-800 tracking-tight">
           {getTitle()}
         </h1>
-
-        {/* Optional Search (global feel) */}
-        <div className="hidden md:flex items-center relative">
-          <Search size={14} className="absolute left-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 
-            focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          />
-        </div>
-
       </div>
 
       {/* Right */}
@@ -65,11 +78,11 @@ const AdminNavbar = () => {
         {/* Profile */}
         <div className="hidden sm:flex items-center gap-2 px-2">
           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
-            A
+            {adminProfile.name.charAt(0)}
           </div>
           <div className="text-xs leading-tight">
-            <p className="font-medium text-gray-700">Admin</p>
-            <p className="text-gray-400">admin@gmail.com</p>
+            <p className="font-medium text-gray-700">{adminProfile.name}</p>
+            <p className="text-gray-400">{adminProfile.email}</p>
           </div>
         </div>
 

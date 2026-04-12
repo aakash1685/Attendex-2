@@ -8,7 +8,6 @@ import {
   CalendarDays,
   FileText,
   Clock,
-  Sparkles,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -30,10 +29,6 @@ const Sidebar = () => {
 
         <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300/80">Attendex</p>
         <h2 className="relative mt-1 text-xl font-semibold text-white">Admin Workspace</h2>
-        <div className="relative mt-3 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-medium text-cyan-100">
-          <Sparkles size={12} />
-          Pro SaaS UI
-        </div>
       </div>
 
       <ul className="flex-1 space-y-1 px-3 py-4">
