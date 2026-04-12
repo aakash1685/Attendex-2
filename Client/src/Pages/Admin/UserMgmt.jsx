@@ -18,7 +18,7 @@ const UserMgmt = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [togglingId, setTogglingId] = useState("");
+  const [generatedPasswords, setGeneratedPasswords] = useState({});
 
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("token");
@@ -36,7 +36,7 @@ const UserMgmt = () => {
   }, [authHeaders]);
 
   const mapUsers = useCallback(
-    (items) => {
+    (items, passwordMap = generatedPasswords) => {
       return items.map((item) => {
         const deptId = typeof item.dept === "object" ? item.dept?._id : item.dept;
         const designationId =
@@ -58,10 +58,11 @@ const UserMgmt = () => {
           designationId,
           deptName,
           designationName,
+          generatedPassword: passwordMap[item._id] || "",
         };
       });
     },
-    [departments, designations],
+    [departments, designations, generatedPasswords],
   );
 
   const fetchUsers = useCallback(async () => {
@@ -84,7 +85,7 @@ const UserMgmt = () => {
         return accumulator;
       }, []);
 
-      setUsers(mapUsers(merged));
+      setUsers(mapUsers(merged, generatedPasswords));
     } catch (fetchError) {
       const message = fetchError?.response?.data?.message || "Failed to load users.";
       setError(message);
@@ -122,6 +123,11 @@ const UserMgmt = () => {
       payload.append("dept", formData.dept);
       payload.append("designation", formData.designation);
       payload.append("salary", String(Number(formData.salary || 0)));
+      payload.append("activeStatus", String(Boolean(formData.activeStatus)));
+      payload.append("isFirstLogin", String(Boolean(formData.isFirstLogin)));
+      payload.append("resetPasswordToken", formData.resetPasswordToken || "");
+      payload.append("resetPasswordExpire", formData.resetPasswordExpire || "");
+      payload.append("leaves", JSON.stringify(formData.leaves));
       payload.append("bank", JSON.stringify(formData.bank));
 
       if (formData.profilePicFile) {
@@ -139,12 +145,21 @@ const UserMgmt = () => {
         });
         toast.success("User updated");
       } else {
-        await axios.post(`${API_BASE_URL}/api/admin/user/create`, payload, {
+        const response = await axios.post(`${API_BASE_URL}/api/admin/user/create`, payload, {
           headers: {
             ...authHeaders,
             "Content-Type": "multipart/form-data",
           },
         });
+        const createdUserId = response?.data?.data?.id;
+        const rawPassword = response?.data?.data?.password;
+        if (createdUserId && rawPassword) {
+          setGeneratedPasswords((prev) => {
+            const nextMap = { ...prev, [createdUserId]: rawPassword };
+            setUsers((prevUsers) => mapUsers(prevUsers, nextMap));
+            return nextMap;
+          });
+        }
         toast.success("User created");
       }
 
@@ -158,22 +173,7 @@ const UserMgmt = () => {
     }
   };
 
-  const handleDeactivate = async (user) => {
-    setTogglingId(user._id);
-    try {
-      await axios.patch(`${API_BASE_URL}/api/admin/user/deactive-user/${user._id}`, {}, { headers: authHeaders });
-      toast.success("User deactivated");
-      await fetchUsers();
-    } catch (deleteError) {
-      toast.error(deleteError?.response?.data?.message || "Failed to deactivate user.");
-    } finally {
-      setTogglingId("");
-    }
-  };
-
   const handleToggleStatus = async (user) => {
-    setTogglingId(user._id);
-
     try {
       await axios.put(
         `${API_BASE_URL}/api/admin/user/edit/${user._id}`,
@@ -185,8 +185,6 @@ const UserMgmt = () => {
       await fetchUsers();
     } catch (toggleError) {
       toast.error(toggleError?.response?.data?.message || "Failed to toggle user status.");
-    } finally {
-      setTogglingId("");
     }
   };
 
@@ -260,9 +258,7 @@ const UserMgmt = () => {
             setEditUser(user);
             setIsOpen(true);
           }}
-          onDeactivate={handleDeactivate}
           onToggleStatus={handleToggleStatus}
-          togglingId={togglingId}
         />
       </div>
 

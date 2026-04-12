@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
+const LEAVE_TYPES = ["CL", "SL", "PL", "LOP"];
+
 const initialState = {
   name: "",
   email: "",
@@ -15,6 +17,16 @@ const initialState = {
     ifsc: "",
   },
   salary: "",
+  activeStatus: true,
+  isFirstLogin: true,
+  resetPasswordToken: "",
+  resetPasswordExpire: "",
+  leaves: {
+    CL: { total: 10, used: 0, remaining: 10 },
+    SL: { total: 8, used: 0, remaining: 8 },
+    PL: { total: 15, used: 0, remaining: 15 },
+    LOP: { total: 0, used: 0, remaining: 0 },
+  },
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,6 +41,8 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
       setErrors({});
       return;
     }
+
+    const leaves = editUser.leaves || {};
 
     setFormData({
       name: editUser.name || "",
@@ -45,6 +59,32 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
         ifsc: editUser.bank?.ifsc || "",
       },
       salary: editUser.salary ?? "",
+      activeStatus: Boolean(editUser.activeStatus),
+      isFirstLogin: Boolean(editUser.isFirstLogin),
+      resetPasswordToken: editUser.resetPasswordToken || "",
+      resetPasswordExpire: editUser.resetPasswordExpire || "",
+      leaves: {
+        CL: {
+          total: leaves.CL?.total ?? 10,
+          used: leaves.CL?.used ?? 0,
+          remaining: leaves.CL?.remaining ?? Math.max((leaves.CL?.total ?? 10) - (leaves.CL?.used ?? 0), 0),
+        },
+        SL: {
+          total: leaves.SL?.total ?? 8,
+          used: leaves.SL?.used ?? 0,
+          remaining: leaves.SL?.remaining ?? Math.max((leaves.SL?.total ?? 8) - (leaves.SL?.used ?? 0), 0),
+        },
+        PL: {
+          total: leaves.PL?.total ?? 15,
+          used: leaves.PL?.used ?? 0,
+          remaining: leaves.PL?.remaining ?? Math.max((leaves.PL?.total ?? 15) - (leaves.PL?.used ?? 0), 0),
+        },
+        LOP: {
+          total: leaves.LOP?.total ?? 0,
+          used: leaves.LOP?.used ?? 0,
+          remaining: leaves.LOP?.remaining ?? Math.max((leaves.LOP?.total ?? 0) - (leaves.LOP?.used ?? 0), 0),
+        },
+      },
     });
     setErrors({});
   }, [editUser]);
@@ -84,6 +124,15 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
       nextErrors.salary = "Salary cannot be negative";
     }
 
+    LEAVE_TYPES.forEach((leaveType) => {
+      const leaveData = formData.leaves[leaveType];
+      ["total", "used", "remaining"].forEach((key) => {
+        if (Number(leaveData[key]) < 0) {
+          nextErrors[`${leaveType}.${key}`] = "Cannot be negative";
+        }
+      });
+    });
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -98,10 +147,16 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
     "w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="mb-5 flex items-center justify-between border-b border-slate-200 pb-3">
-          <h2 className="text-xl font-semibold text-slate-900">{editUser ? "Edit User" : "Add User"}</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">{editUser ? "Edit Employee" : "Create Employee"}</h2>
+            <p className="text-xs text-slate-500">All user model fields available in one professional setup.</p>
+          </div>
           <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
             ✕
           </button>
@@ -229,7 +284,50 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
           </section>
 
           <section className="rounded-2xl border border-slate-200 p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Bank Details</h3>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Leaves</h3>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+              {LEAVE_TYPES.map((leaveType) => (
+                <div key={leaveType} className="rounded-xl border border-slate-200 p-3">
+                  <p className="mb-2 text-xs font-semibold text-slate-600">{leaveType}</p>
+                  <div className="space-y-2">
+                    {[
+                      { key: "total", label: "Total" },
+                      { key: "used", label: "Used" },
+                      { key: "remaining", label: "Remaining" },
+                    ].map((item) => (
+                      <div key={item.key}>
+                        <label className="mb-1 block text-[11px] text-slate-500">{item.label}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.leaves[leaveType][item.key]}
+                          onChange={(event) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              leaves: {
+                                ...prev.leaves,
+                                [leaveType]: {
+                                  ...prev.leaves[leaveType],
+                                  [item.key]: Number(event.target.value),
+                                },
+                              },
+                            }))
+                          }
+                          className={inputClass}
+                        />
+                        {errors[`${leaveType}.${item.key}`] && (
+                          <p className="mt-1 text-xs text-rose-600">{errors[`${leaveType}.${item.key}`]}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 p-4">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Bank & Account</h3>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <input
@@ -250,21 +348,53 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
                 placeholder="IFSC"
                 className={inputClass}
               />
+              <div>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.salary}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, salary: event.target.value }))}
+                  placeholder="Salary"
+                  className={inputClass}
+                />
+                {errors.salary && <p className="mt-1 text-xs text-rose-600">{errors.salary}</p>}
+              </div>
+              <input
+                value={formData.resetPasswordToken}
+                onChange={(event) => setFormData((prev) => ({ ...prev, resetPasswordToken: event.target.value }))}
+                placeholder="Reset Password Token (optional)"
+                className={inputClass}
+              />
+              <div className="md:col-span-2">
+                <input
+                  value={formData.resetPasswordExpire}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, resetPasswordExpire: event.target.value }))}
+                  placeholder="Reset Password Expire (optional)"
+                  className={inputClass}
+                />
+              </div>
             </div>
           </section>
 
           <section className="rounded-2xl border border-slate-200 p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Salary</h3>
-            <div>
-              <input
-                type="number"
-                min="0"
-                value={formData.salary}
-                onChange={(event) => setFormData((prev) => ({ ...prev, salary: event.target.value }))}
-                placeholder="Salary"
-                className={inputClass}
-              />
-              {errors.salary && <p className="mt-1 text-xs text-rose-600">{errors.salary}</p>}
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Flags</h3>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+                Active Status
+                <input
+                  type="checkbox"
+                  checked={formData.activeStatus}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, activeStatus: event.target.checked }))}
+                />
+              </label>
+              <label className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+                Is First Login
+                <input
+                  type="checkbox"
+                  checked={formData.isFirstLogin}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, isFirstLogin: event.target.checked }))}
+                />
+              </label>
             </div>
           </section>
 
