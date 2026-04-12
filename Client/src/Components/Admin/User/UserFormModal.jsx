@@ -19,8 +19,6 @@ const initialState = {
   salary: "",
   activeStatus: true,
   isFirstLogin: true,
-  resetPasswordToken: "",
-  resetPasswordExpire: "",
   leaves: {
     CL: { total: 10, used: 0, remaining: 10 },
     SL: { total: 8, used: 0, remaining: 8 },
@@ -61,8 +59,6 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
       salary: editUser.salary ?? "",
       activeStatus: Boolean(editUser.activeStatus),
       isFirstLogin: Boolean(editUser.isFirstLogin),
-      resetPasswordToken: editUser.resetPasswordToken || "",
-      resetPasswordExpire: editUser.resetPasswordExpire || "",
       leaves: {
         CL: {
           total: leaves.CL?.total ?? 10,
@@ -358,20 +354,6 @@ const UserFormModal = ({ isOpen, onClose, onSave, departments, designations, edi
                   className={inputClass}
                 />
                 {errors.salary && <p className="mt-1 text-xs text-rose-600">{errors.salary}</p>}
-              </div>
-              <input
-                value={formData.resetPasswordToken}
-                onChange={(event) => setFormData((prev) => ({ ...prev, resetPasswordToken: event.target.value }))}
-                placeholder="Reset Password Token (optional)"
-                className={inputClass}
-              />
-              <div className="md:col-span-2">
-                <input
-                  value={formData.resetPasswordExpire}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, resetPasswordExpire: event.target.value }))}
-                  placeholder="Reset Password Expire (optional)"
-                  className={inputClass}
-                />
               </div>
             </div>
           </section>
