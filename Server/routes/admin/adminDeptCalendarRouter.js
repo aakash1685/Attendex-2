@@ -15,7 +15,7 @@ const {
 
 router.post("/create", adminProtect, createDeptCalendarController); //CREATE CALENDAR
 
-router.put("/update/:id/:year/", adminProtect, updateDeptCalendarController); //UPDATE CALENDAR
+router.put("/update/:deptId/:year/", adminProtect, updateDeptCalendarController); //UPDATE CALENDAR
 router.patch("/month/:deptId/:year/:month", adminProtect, updateSingleMonthController) //UPDATE SINGLE MONTH CALENDAR
 
 router.get("/year/:deptId/:year", adminProtect, getCalendarByYearController); //GET CALENDAR BY YEAR
