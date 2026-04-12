@@ -87,13 +87,11 @@ const AdminNavbar = () => {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-violet-200/80 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 px-3.5 py-2 text-sm font-semibold text-violet-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md hover:shadow-violet-200/70"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg 
+          text-red-600 bg-red-50 hover:bg-red-100 transition"
         >
-          <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/70 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-          <span className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm">
-            <LogOut size={14} />
-          </span>
-          <span className="relative">Logout</span>
+          <LogOut size={14} />
+          Logout
         </button>
 
       </div>
