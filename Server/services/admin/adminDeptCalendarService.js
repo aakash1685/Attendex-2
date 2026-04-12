@@ -64,7 +64,7 @@ const updateDeptCalendarService = async (deptId, year, data, admin) => {
     };
   }
   const calendar = await deptCalendarModel.findOne({
-    dept: deptId,
+    deptId,
     year: Number(year),
   });
   if (!calendar) {

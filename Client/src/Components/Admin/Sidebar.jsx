@@ -7,6 +7,7 @@ import {
   Briefcase,
   FileText,
   Clock,
+  CalendarDays,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -17,6 +18,7 @@ const Sidebar = () => {
     { name: "Designation", path: "/admin/designation", icon: Briefcase },
     { name: "Leaves", path: "/admin/leaves", icon: FileText },
     { name: "Attendance", path: "/admin/attendance", icon: Clock },
+    { name: "Calendar", path: "/admin/calendar", icon: CalendarDays },
   ];
 
   return (
