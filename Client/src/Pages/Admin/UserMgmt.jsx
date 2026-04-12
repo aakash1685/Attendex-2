@@ -93,20 +93,23 @@ const UserMgmt = () => {
     } finally {
       setLoading(false);
     }
-  }, [authHeaders, mapUsers]);
+  }, [authHeaders, generatedPasswords, mapUsers]);
 
   useEffect(() => {
     const loadPage = async () => {
       try {
         await fetchReferenceData();
-        await fetchUsers();
       } catch (loadError) {
-        toast.error(loadError?.response?.data?.message || "Failed to load user management data.");
+        toast.error(loadError?.response?.data?.message || "Failed to load reference data.");
       }
     };
 
     loadPage();
-  }, [fetchReferenceData, fetchUsers]);
+  }, [fetchReferenceData]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleSave = async (formData) => {
     setSubmitting(true);
@@ -125,8 +128,6 @@ const UserMgmt = () => {
       payload.append("salary", String(Number(formData.salary || 0)));
       payload.append("activeStatus", String(Boolean(formData.activeStatus)));
       payload.append("isFirstLogin", String(Boolean(formData.isFirstLogin)));
-      payload.append("resetPasswordToken", formData.resetPasswordToken || "");
-      payload.append("resetPasswordExpire", formData.resetPasswordExpire || "");
       payload.append("leaves", JSON.stringify(formData.leaves));
       payload.append("bank", JSON.stringify(formData.bank));
 
