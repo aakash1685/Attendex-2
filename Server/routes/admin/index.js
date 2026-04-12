@@ -8,5 +8,6 @@ router.use("/desig", require("./adminDesigRouter"));
 router.use("/dept-calendar", require("./adminDeptCalendarRouter"));
 router.use("/leave", require("./adminLeaveRouter"));
 router.use("/attendance", require("./adminAttendanceRouter"));
+router.use("/dashboard", require("./adminDashboardRouter"));
 
 module.exports = router;
