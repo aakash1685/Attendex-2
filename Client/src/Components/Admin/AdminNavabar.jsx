@@ -46,8 +46,6 @@ const AdminNavbar = () => {
         return "Department Management";
       case "/admin/designation":
         return "Designation Management";
-      case "/admin/calendar":
-        return "Calendar Management";
       case "/admin/leaves":
         return "Leave Management";
       case "/admin/attendance":

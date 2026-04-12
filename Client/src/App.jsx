@@ -10,11 +10,9 @@ import AdminDashboard from "./Pages/Admin/Dashboard";
 import AdminUser from "./Pages/Admin/UserMgmt";
 import AdminDepartment from "./Pages/Admin/DeptMgmt";
 import AdminDesig from "./Pages/Admin/DesignationMgmt";
-import AdminCalendar from "./Pages/Admin/CalenderMgmt";
 import AdminLeaves from "./Pages/Admin/LeavesMgmt";
 import AdminAttendance from "./Pages/Admin/AttendanceMgmt";
 import AdminLayout from "./Pages/Admin/AdminLayout";
-import AdminCalendarDetail from "./Pages/Admin/CalendarDetails";
 
 // USER PAGES
 import ProtectedRoute from "./Components/Admin/ProtectedRoute";
@@ -49,11 +47,6 @@ const App = () => {
   <Route path="user" element={<AdminUser />} />
   <Route path="department" element={<AdminDepartment />} />
   <Route path="designation" element={<AdminDesig />} />
-  <Route path="calendar" element={<AdminCalendar />} />
-
-  {/* ✅ THIS IS MISSING */}
-  <Route path="calendar/:id" element={<AdminCalendarDetail />} />
-
   <Route path="leaves" element={<AdminLeaves />} />
   <Route path="attendance" element={<AdminAttendance />} />
 </Route>
