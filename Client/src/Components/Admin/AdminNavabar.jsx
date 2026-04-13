@@ -143,7 +143,7 @@ const AdminNavbar = () => {
   };
 
   return (
-    <div className="fixed top-0 left-72 right-0 z-20 flex h-16 items-center justify-between overflow-hidden border-b border-gray-200 bg-white px-6">
+    <div className="fixed top-0 left-72 right-0 z-40 flex h-16 items-center justify-between overflow-visible border-b border-gray-200 bg-white px-6">
       <div className="flex items-center gap-4">
         <h1 className="text-lg font-semibold text-gray-800 tracking-tight">
           {getTitle()}
@@ -165,7 +165,7 @@ const AdminNavbar = () => {
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-[380px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+
               <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-900">Leave Notifications</p>
