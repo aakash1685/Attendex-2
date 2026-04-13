@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarRange, Filter, RefreshCcw, Search } from "lucide-react";
+import { CalendarRange, Filter, RefreshCcw, RotateCcw, Search } from "lucide-react";
 import { STATUS_OPTIONS, VIEW_OPTIONS, getEmployeeDepartmentId } from "./attendanceHelpers";
 
 const controlClass =
@@ -15,6 +15,7 @@ const AttendanceFilters = ({
   employees,
   departments,
   onRefresh,
+  onResetFilters,
   loading,
 }) => {
   const updateFilter = (key, value) => {
@@ -32,18 +33,27 @@ const AttendanceFilters = ({
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
           <Filter size={16} /> Filters
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <RefreshCcw size={15} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onResetFilters}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            <RotateCcw size={15} /> Clear
+          </button>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshCcw size={15} /> Refresh
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -122,6 +132,7 @@ const AttendanceFilters = ({
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-slate-500">Date</label>
           <input type="date" value={filters.date} onChange={(e) => updateFilter("date", e.target.value)} className={controlClass} />
+          <p className="mt-1 text-xs text-slate-400">Selecting a date overrides From/To range.</p>
         </div>
 
         <div>

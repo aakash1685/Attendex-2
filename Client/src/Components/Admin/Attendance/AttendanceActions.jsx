@@ -13,7 +13,7 @@ const AttendanceActions = ({
       <button
         type="button"
         onClick={() => onEdit(record)}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
       >
         <PencilLine size={14} /> Edit
       </button>
@@ -22,14 +22,16 @@ const AttendanceActions = ({
         <button
           type="button"
           onClick={() => onQuickStatusUpdate(record, "PRESENT")}
-          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+          disabled={record.attendanceStatus === "PRESENT"}
+          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Check size={12} /> Present
         </button>
         <button
           type="button"
           onClick={() => onQuickStatusUpdate(record, "ABSENT")}
-          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+          disabled={record.attendanceStatus === "ABSENT"}
+          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <X size={12} /> Absent
         </button>
