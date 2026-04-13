@@ -14,6 +14,7 @@ import AdminLeaves from "./Pages/Admin/LeavesMgmt";
 import AdminAttendance from "./Pages/Admin/AttendanceMgmt";
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import AdminCalendar from "./Pages/Admin/CalenderMgmt";
+import LeaveNotifications from "./Pages/Admin/LeaveNotifications";
 
 // USER PAGES
 import ProtectedRoute from "./Components/Admin/ProtectedRoute";
@@ -49,6 +50,7 @@ const App = () => {
   <Route path="department" element={<AdminDepartment />} />
   <Route path="designation" element={<AdminDesig />} />
   <Route path="leaves" element={<AdminLeaves />} />
+  <Route path="leave-notifications" element={<LeaveNotifications />} />
   <Route path="attendance" element={<AdminAttendance />} />
   <Route path="calendar" element={<AdminCalendar />} />
 </Route>
