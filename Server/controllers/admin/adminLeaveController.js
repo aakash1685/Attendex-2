@@ -5,6 +5,7 @@ const {
   deleteLeaveService,
   getLeavesByEmpService,
   getLeaveSummaryService,
+  getLeaveNotificationsService,
 } = require("../../services/admin/adminLeaveService");
 
 const getAllLeavesController = async (req, res) => {
@@ -76,6 +77,20 @@ const deleteLeaveController = async (req, res) => {
   }
 };
 
+
+const getLeaveNotificationsController = async (req, res) => {
+  try {
+    const result = await getLeaveNotificationsService(req.query, req.admin);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    console.log("ERROR: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 const getLeaveSummaryController = async (req, res) => {
   try {
     const result = await getLeaveSummaryService(req.query, req.admin);
@@ -96,4 +111,5 @@ module.exports = {
   deleteLeaveController,
   getLeavesByEmpController,
   getLeaveSummaryController,
+  getLeaveNotificationsController,
 };

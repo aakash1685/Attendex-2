@@ -91,6 +91,34 @@ const getLeavesByEmpService = async (empId, query, admin) => {
   };
 };
 
+//GET LEAVE NOTIFICATIONS FOR ADMIN NAVBAR
+const getLeaveNotificationsService = async (query, admin) => {
+  const check = adminCheck(admin);
+  if (check) return check;
+
+  const limit = Number(query.limit) > 0 ? Math.min(Number(query.limit), 30) : 10;
+
+  const [pendingCount, recentPendingLeaves] = await Promise.all([
+    leavesModel.countDocuments({ leaveStatus: "PENDING" }),
+    leavesModel
+      .find({ leaveStatus: "PENDING" })
+      .populate("empId", "name email")
+      .populate("deptId", "name")
+      .sort({ createdAt: -1 })
+      .limit(limit),
+  ]);
+
+  return {
+    status: 200,
+    success: true,
+    message: "Leave notifications fetched successfully",
+    data: {
+      pendingCount,
+      notifications: recentPendingLeaves,
+    },
+  };
+};
+
 //TO APPROVE LEAVES
 const approveLeaveService = async (leaveId, admin) => {
   const check = adminCheck(admin);
@@ -305,4 +333,5 @@ module.exports = {
   deleteLeaveService,
   getLeavesByEmpService,
   getLeaveSummaryService,
+  getLeaveNotificationsService,
 };
