@@ -187,7 +187,7 @@ const AdminNavbar = () => {
                       key={leave._id}
                       onClick={() => {
                         setNotificationsOpen(false);
-                        navigate("/admin/leave-notifications");
+                        navigate("/admin/leaves");
                       }}
                       className="mb-2 w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-indigo-300 hover:bg-indigo-50/40"
                     >
@@ -211,7 +211,7 @@ const AdminNavbar = () => {
                 <button
                   onClick={() => {
                     setNotificationsOpen(false);
-                    navigate("/admin/leave-notifications");
+                    navigate("/admin/leaves");
                   }}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
