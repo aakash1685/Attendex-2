@@ -165,7 +165,7 @@ const AdminNavbar = () => {
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 z-[120] w-[380px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+
               <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-900">Leave Notifications</p>
