@@ -264,6 +264,12 @@ const AttendanceMgmt = () => {
     }));
   };
 
+  const handleResetFilters = () => {
+    setViewMode("all");
+    setFilters(initialFilters);
+    setSummaryMonth(getMonthInputValue());
+  };
+
   return (
     <div className="min-h-full bg-slate-100/70 p-4 sm:p-6">
       <Toaster position="top-right" />
@@ -300,6 +306,7 @@ const AttendanceMgmt = () => {
           departments={departments}
           loading={tableLoading || summaryLoading}
           onRefresh={refreshAllData}
+          onResetFilters={handleResetFilters}
         />
 
         <AttendanceTable
