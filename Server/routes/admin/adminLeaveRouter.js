@@ -8,11 +8,13 @@ const {
   deleteLeaveController,
   getLeavesByEmpController,
   getLeaveSummaryController,
+  getLeaveNotificationsController,
 } = require("../../controllers/admin/adminLeaveController");
 
 router.get("/", adminProtect, getAllLeavesController);
 router.get("/emp/:empId", adminProtect, getLeavesByEmpController);
 router.get("/summary", adminProtect, getLeaveSummaryController);
+router.get("/notifications", adminProtect, getLeaveNotificationsController);
 
 router.patch("/approve/:leaveId", adminProtect, approveLeaveController);
 router.patch("/reject/:leaveId", adminProtect, rejectLeaveController);
