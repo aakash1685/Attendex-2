@@ -18,7 +18,13 @@ const UserMgmt = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [generatedPasswords, setGeneratedPasswords] = useState({});
+  const [generatedPasswords, setGeneratedPasswords] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("generatedPasswords") || "{}");
+    } catch {
+      return {};
+    }
+  });
 
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("token");
@@ -58,12 +64,16 @@ const UserMgmt = () => {
           designationId,
           deptName,
           designationName,
-          generatedPassword: passwordMap[item._id] || "",
+          generatedPassword: passwordMap[item._id] || item.initialPassword || "",
         };
       });
     },
     [departments, designations, generatedPasswords],
   );
+
+  useEffect(() => {
+    localStorage.setItem("generatedPasswords", JSON.stringify(generatedPasswords));
+  }, [generatedPasswords]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);

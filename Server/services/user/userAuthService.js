@@ -2,12 +2,10 @@ const userModel = require("../../models/userModel");
 const sendEmail = require("../../utils/sendEmail");
 const attendanceModel = require("../../models/attendanceModel");
 const leaveModel = require("../../models/leavesModel");
-const deptCalendar = require("../../models/deptCalendarModel");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const deptCalendarModel = require("../../models/deptCalendarModel");
-const { status } = require("init");
 
 const loginService = async (body) => {
   const { email, password } = body;
@@ -20,7 +18,8 @@ const loginService = async (body) => {
     };
   }
 
-  const user = await userModel.findOne({ email });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const user = await userModel.findOne({ email: normalizedEmail });
 
   if (!user) {
     return {
@@ -66,6 +65,7 @@ const loginService = async (body) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      isFirstLogin: Boolean(user.isFirstLogin),
     },
   };
 };
@@ -102,6 +102,7 @@ const changePasswordService = async (user, body) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   existUser.password = hashedPassword;
   existUser.isFirstLogin = false;
+  existUser.initialPassword = "";
   await existUser.save();
 
   return {
@@ -114,7 +115,7 @@ const changePasswordService = async (user, body) => {
 const getProfileService = async (user) => {
   const profile = await userModel
     .findById(user._id)
-    .select("-password -resetPasswordToken -resetPasswordExpire")
+    .select("-password -initialPassword -resetPasswordToken -resetPasswordExpire")
     .populate("dept", "name")
     .populate("designation", "name");
 
@@ -198,6 +199,7 @@ const resetPasswordService = async (token, newPassword) => {
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
   user.isFirstLogin = false;
+  user.initialPassword = "";
 
   await user.save();
 

@@ -8,7 +8,7 @@ const {
 
 const createUserController = async (req, res) => {
   try {
-    const profilePic = req.file?.path || null;
+    const profilePic = req.file?.path;
     const leaves =
       typeof req.body.leaves === "string"
         ? JSON.parse(req.body.leaves)
@@ -22,7 +22,7 @@ const createUserController = async (req, res) => {
       ...req.body,
       leaves,
       bank,
-      profilePic,
+      ...(profilePic && { profilePic }),
     };
     const result = await createUserService(payLoad, req.admin);
     return res.status(result.status).json(result);

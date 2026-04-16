@@ -22,6 +22,10 @@ const userSchema = mongoose.Schema(
       required: true,
       minLength: 3,
     },
+    initialPassword: {
+      type: String,
+      default: "",
+    },
 
     mobileNo: {
       type: Number,

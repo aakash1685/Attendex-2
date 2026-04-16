@@ -34,15 +34,15 @@ const UserCard = ({ user, onEdit, onToggle }) => {
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <img
             src={user.profilePic || "https://i.pravatar.cc/120?img=12"}
             alt={user.name}
             className="h-14 w-14 rounded-xl border border-slate-200 object-cover"
           />
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">{user.name}</h3>
-            <p className="text-xs text-slate-500">{user.designationName || "-"} • {user.deptName || "-"}</p>
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-semibold text-slate-900">{user.name}</h3>
+            <p className="truncate text-xs text-slate-500">{user.designationName || "-"} • {user.deptName || "-"}</p>
             <span
               className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${
                 user.activeStatus ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"
@@ -74,9 +74,18 @@ const UserCard = ({ user, onEdit, onToggle }) => {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-        <div className="flex items-center gap-2 text-slate-700"><Mail size={14} /> {user.email || "-"}</div>
-        <div className="flex items-center gap-2 text-slate-700"><Phone size={14} /> {user.mobileNo || "-"}</div>
-        <div className="flex items-center gap-2 text-slate-700 md:col-span-2"><MapPin size={14} /> {user.address || "-"}</div>
+        <div className="flex min-w-0 items-center gap-2 text-slate-700">
+          <Mail size={14} className="shrink-0" />
+          <span className="truncate">{user.email || "-"}</span>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 text-slate-700">
+          <Phone size={14} className="shrink-0" />
+          <span className="truncate">{user.mobileNo || "-"}</span>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 text-slate-700 md:col-span-2">
+          <MapPin size={14} className="shrink-0" />
+          <span className="truncate">{user.address || "-"}</span>
+        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm">
@@ -124,10 +133,10 @@ const UserCard = ({ user, onEdit, onToggle }) => {
           </div>
 
           <div className="grid grid-cols-1 gap-2 text-sm text-slate-700 md:grid-cols-3">
-            <div className="flex items-center gap-2"><Building2 size={14} /> Dept Ref: {user.deptId || "-"}</div>
-            <div className="flex items-center gap-2"><Briefcase size={14} /> Desig Ref: {user.designationId || "-"}</div>
-            <div className="flex items-center gap-2"><Wallet size={14} /> Active: {String(Boolean(user.activeStatus))}</div>
-            <div className="flex items-center gap-2 md:col-span-3"><User size={14} /> Profile: {user.profilePic || "No image"}</div>
+            <div className="flex min-w-0 items-center gap-2"><Building2 size={14} className="shrink-0" /> <span className="break-all">Dept Ref: {user.deptId || "-"}</span></div>
+            <div className="flex min-w-0 items-center gap-2"><Briefcase size={14} className="shrink-0" /> <span className="break-all">Desig Ref: {user.designationId || "-"}</span></div>
+            <div className="flex min-w-0 items-center gap-2"><Wallet size={14} className="shrink-0" /> <span>Active: {String(Boolean(user.activeStatus))}</span></div>
+            <div className="flex min-w-0 items-center gap-2 md:col-span-3"><User size={14} className="shrink-0" /> <span className="break-all">Profile: {user.profilePic || "No image"}</span></div>
           </div>
         </div>
       )}
