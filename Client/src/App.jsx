@@ -26,6 +26,7 @@ import UserLeave from "./Pages/User/Leave";
 import UserProfile from "./Pages/User/Profile";
 import ForgotPassword from "./Pages/User/ForgotPassword";
 import ResetPassword from "./Pages/User/ResetPassword";
+import ForceChangePassword from "./Pages/User/ForceChangePassword";
 
 const App = () => {
   return (
@@ -63,6 +64,7 @@ const App = () => {
             </ProtectedRoute>
           }
         >
+          <Route path="force-change-password" element={<ForceChangePassword />} />
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<UserHome />} />
           <Route path="attendance" element={<UserAttendance />} />

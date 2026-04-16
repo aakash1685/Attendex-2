@@ -62,10 +62,12 @@ const Login = ({ onBack }) => {
       }
 
       localStorage.clear();
+      const isFirstLogin = Boolean(res.data?.user?.isFirstLogin);
       localStorage.setItem("token", token);
       localStorage.setItem("role", "user");
+      localStorage.setItem("isFirstLogin", String(isFirstLogin));
 
-      navigate("/user/home");
+      navigate(isFirstLogin ? "/user/force-change-password" : "/user/home");
     } catch (err) {
       setErrorMsg(err.response?.data?.message || err.message || "Login failed");
     } finally {
