@@ -116,8 +116,8 @@ const getProfileService = async (user) => {
   const profile = await userModel
     .findById(user._id)
     .select("-password -initialPassword -resetPasswordToken -resetPasswordExpire")
-    .populate("dept", "name")
-    .populate("designation", "name");
+    .populate("dept", "deptName")
+    .populate("designation", "desigName");
 
   if (!profile) {
     return {

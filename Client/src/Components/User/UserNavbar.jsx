@@ -1,22 +1,75 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiCalendar, FiClock, FiGrid, FiHome, FiLogOut, FiUser } from "react-icons/fi";
+import axios from "axios";
+import { FiCalendar, FiClock, FiHome, FiLogOut, FiUser } from "react-icons/fi";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+const getInitials = (name = "User") => {
+  const parts = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
+};
 
 const UserNavbar = () => {
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
+  const [userMeta, setUserMeta] = useState(() => ({
+    name: localStorage.getItem("userName") || "User",
+    profilePic: localStorage.getItem("userProfilePic") || "",
+  }));
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/user/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const profile = response.data?.profile;
+        if (!profile) return;
+
+        const nextMeta = {
+          name: profile.name || "User",
+          profilePic: profile.profilePic || "",
+        };
+
+        localStorage.setItem("userName", nextMeta.name);
+        localStorage.setItem("userProfilePic", nextMeta.profilePic);
+        setUserMeta(nextMeta);
+      } catch {
+        // silently keep cached data
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("isFirstLogin");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userProfilePic");
     navigate("/");
   };
+
+  const userInitials = useMemo(() => getInitials(userMeta.name), [userMeta.name]);
 
   const navItems = useMemo(
     () => [
@@ -79,9 +132,17 @@ const UserNavbar = () => {
             to="/user/profile"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-200 hover:text-indigo-600"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-semibold text-white shadow">
-              U
-            </span>
+            {userMeta.profilePic ? (
+              <img
+                src={userMeta.profilePic}
+                alt={userMeta.name || "User"}
+                className="h-8 w-8 rounded-full border border-slate-200 object-cover"
+              />
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-semibold text-white shadow">
+                {userInitials}
+              </span>
+            )}
             <span className="hidden sm:block">Profile</span>
             <FiUser className="sm:hidden" />
           </NavLink>
