@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { LogOut, Bell, Clock3, CalendarDays, Building2, UserRound, ArrowRight } from "lucide-react";
+import { clearSessionForRole, getScopedToken } from "../../utils/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -47,7 +48,7 @@ const AdminNavbar = () => {
     };
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getScopedToken("admin");
 
       if (!token) return fallbackProfile;
 
@@ -65,7 +66,7 @@ const AdminNavbar = () => {
   }, []);
 
   const axiosClient = useMemo(() => {
-    const token = localStorage.getItem("token");
+    const token = getScopedToken("admin");
 
     return axios.create({
       baseURL: API_BASE_URL,
@@ -115,8 +116,7 @@ const AdminNavbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    clearSessionForRole("admin");
     window.location.href = "/";
   };
 

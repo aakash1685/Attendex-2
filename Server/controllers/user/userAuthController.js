@@ -5,6 +5,7 @@ const {
   resetPasswordService,
   getProfileService,
   getEmpCalendarService,
+  getUserDashboardSummaryService,
 } = require("../../services/user/userAuthService");
 
 const loginController = async (req, res) => {
@@ -84,6 +85,19 @@ const getEmpCalendarController = async(req,res) => {
   }
 }
 
+const getUserDashboardSummaryController = async (req, res) => {
+  try {
+    const result = await getUserDashboardSummaryService(req.user);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    console.error("USER DASHBOARD SUMMARY CONTROLLER ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   loginController,
   changePasswordController,
@@ -91,4 +105,5 @@ module.exports = {
   forgotPasswordController,
   resetPasswordController,
   getEmpCalendarController,
+  getUserDashboardSummaryController,
 };

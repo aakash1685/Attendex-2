@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Sparkles, UserCircle2 } from "lucide-react";
+import { persistLoginSession } from "../../utils/authStorage";
 
 const Login = ({ onBack }) => {
   const navigate = useNavigate();
@@ -61,12 +62,13 @@ const Login = ({ onBack }) => {
         throw new Error("Token not received");
       }
 
-      localStorage.clear();
       const isFirstLogin = Boolean(res.data?.user?.isFirstLogin);
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", "user");
-      localStorage.setItem("isFirstLogin", String(isFirstLogin));
-      localStorage.setItem("userName", res.data?.user?.name || "User");
+      persistLoginSession({
+        role: "user",
+        token,
+        isFirstLogin,
+        userName: res.data?.user?.name || "User",
+      });
 
       navigate(isFirstLogin ? "/user/force-change-password" : "/user/home");
     } catch (err) {
