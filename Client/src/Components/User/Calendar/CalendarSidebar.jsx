@@ -64,6 +64,22 @@ const CalendarSidebar = ({ month, holidays, workingDaysOverride, attendanceMonth
           <p className="calendar-empty-text">No override days in this month.</p>
         )}
       </section>
+
+      <section>
+        <h4>Approved Leave Reasons</h4>
+        {approvedLeaves.length ? (
+          <div className="calendar-list">
+            {approvedLeaves.map((leaveDay) => (
+              <article key={`leave-${leaveDay.date}`}>
+                <strong>{new Date(leaveDay.date).toLocaleDateString()}</strong>
+                <span>{leaveDay.leaveType || "Leave"} • {leaveDay.leaveReason || "No reason provided"}</span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="calendar-empty-text">No approved leaves in this month.</p>
+        )}
+      </section>
     </aside>
   );
 };

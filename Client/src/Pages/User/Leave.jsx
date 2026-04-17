@@ -33,7 +33,7 @@ const toISODate = (value) => {
 };
 
 const Leave = () => {
-  const [form, setForm] = useState({ reason: "", leaveType: "CL", selectedDate: "", leaveDates: [] });
+  const [form, setForm] = useState({ reason: "", leaveType: "CL", selectedDate: "", rangeStartDate: "", rangeEndDate: "", leaveDates: [] });
   const [filters, setFilters] = useState({ status: "", fromDate: "", toDate: "", month: "", year: "" });
   const [leaves, setLeaves] = useState([]);
   const [selectedLeave, setSelectedLeave] = useState(null);
@@ -147,6 +147,47 @@ const Leave = () => {
     setForm((prev) => ({ ...prev, leaveDates: updated, selectedDate: "" }));
   };
 
+  const addDateRange = () => {
+    if (!form.rangeStartDate || !form.rangeEndDate) {
+      toast.error("Please select both start and end dates.");
+      return;
+    }
+
+    const start = new Date(form.rangeStartDate);
+    const end = new Date(form.rangeEndDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    if (start > end) {
+      toast.error("Start date cannot be later than end date.");
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const rangeDates = [];
+    let pointer = new Date(start);
+    while (pointer <= end) {
+      const isoDate = pointer.toISOString().split("T")[0];
+      if (pointer > today) {
+        rangeDates.push(isoDate);
+      }
+      pointer.setDate(pointer.getDate() + 1);
+    }
+
+    const uniqueDates = [...new Set([...form.leaveDates, ...rangeDates])].filter((isoDate) => !pendingLeaveDates.has(isoDate));
+    const sortedDates = uniqueDates.sort((a, b) => new Date(a) - new Date(b));
+
+    if (!sortedDates.length) {
+      toast.error("No valid future dates found in selected range.");
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, leaveDates: sortedDates, rangeStartDate: "", rangeEndDate: "" }));
+    toast.success(`Added ${rangeDates.length} date(s) from range.`);
+  };
+
   const validateLeaveForm = () => {
     if (!form.reason.trim()) return "Reason is required.";
     if (form.reason.trim().length < 3) return "Reason must be at least 3 characters.";
@@ -181,8 +222,15 @@ const Leave = () => {
         throw new Error(response.data?.message || "Unable to apply leave");
       }
 
-      toast.success("Leave applied successfully.");
-      setForm({ reason: "", leaveType: "CL", selectedDate: "", leaveDates: [] });
+      const skipped = response.data?.skipped || {};
+      const skippedCount = (skipped.holidays?.length || 0) + (skipped.weeklyOffs?.length || 0) + (skipped.existingLeaves?.length || 0);
+
+      if (skippedCount > 0) {
+        toast.success(`${response.data.message} Applied on ${response.data?.data?.totalDays || 0} day(s).`);
+      } else {
+        toast.success("Leave applied successfully.");
+      }
+      setForm({ reason: "", leaveType: "CL", selectedDate: "", rangeStartDate: "", rangeEndDate: "", leaveDates: [] });
       fetchLeaves();
     } catch (error) {
       toast.error(error?.response?.data?.message || error?.message || "Failed to apply leave.");
@@ -238,15 +286,18 @@ const Leave = () => {
       </section>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[{ label: "Total", value: summary.total, icon: FiCalendar }, { label: "Pending", value: summary.pending, icon: FiClock }, { label: "Approved", value: summary.approved, icon: FiCheckCircle }, { label: "Rejected", value: summary.rejected, icon: FiXCircle }].map(({ label, value, icon: Icon }) => (
-          <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-500">{label}</p>
-              <Icon className="text-indigo-500" />
-            </div>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p>
-          </article>
-        ))}
+        {[{ label: "Total", value: summary.total, icon: FiCalendar }, { label: "Pending", value: summary.pending, icon: FiClock }, { label: "Approved", value: summary.approved, icon: FiCheckCircle }, { label: "Rejected", value: summary.rejected, icon: FiXCircle }].map((summaryCard) => {
+          const SummaryIcon = summaryCard.icon;
+          return (
+            <article key={summaryCard.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-500">{summaryCard.label}</p>
+                <SummaryIcon className="text-indigo-500" />
+              </div>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{summaryCard.value}</p>
+            </article>
+          );
+        })}
       </section>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -295,6 +346,31 @@ const Leave = () => {
                   className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                 >
                   <FiPlus /> Add
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Or select date range (recommended)</label>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <input
+                  type="date"
+                  value={form.rangeStartDate}
+                  onChange={(event) => setForm((prev) => ({ ...prev, rangeStartDate: event.target.value }))}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring"
+                />
+                <input
+                  type="date"
+                  value={form.rangeEndDate}
+                  onChange={(event) => setForm((prev) => ({ ...prev, rangeEndDate: event.target.value }))}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring"
+                />
+                <button
+                  type="button"
+                  onClick={addDateRange}
+                  className="inline-flex items-center justify-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                >
+                  <FiPlus /> Add Range
                 </button>
               </div>
             </div>
