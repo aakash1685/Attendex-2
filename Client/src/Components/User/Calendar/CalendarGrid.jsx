@@ -115,6 +115,8 @@ const CalendarGrid = ({
         isWeeklyOff ? `Weekly Off: ${dayName}` : null,
         attendanceEntry?.attendanceStatus ? `Attendance: ${attendanceEntry.attendanceStatus}` : null,
         attendanceEntry?.leaveStatus ? `Leave: ${attendanceEntry.leaveStatus}` : null,
+        attendanceEntry?.leaveType ? `Leave Type: ${attendanceEntry.leaveType}` : null,
+        attendanceEntry?.leaveReason ? `Reason: ${attendanceEntry.leaveReason}` : null,
       ]
         .filter(Boolean)
         .join(" • ");
@@ -164,6 +166,11 @@ const CalendarGrid = ({
 
             {dayData.holidayTitle ? <p>{dayData.holidayTitle}</p> : null}
             {dayData.overrideReason ? <p>{dayData.overrideReason}</p> : null}
+            {dayData.attendanceEntry?.leaveStatus === "APPROVED" ? (
+              <p title={dayData.attendanceEntry?.leaveReason || ""}>
+                Leave{dayData.attendanceEntry?.leaveReason ? `: ${dayData.attendanceEntry.leaveReason}` : ""}
+              </p>
+            ) : null}
           </div>
         );
       })}

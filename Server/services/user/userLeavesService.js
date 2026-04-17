@@ -1,5 +1,6 @@
 const leaveModel = require("../../models/leavesModel");
 const leaveBalanceModel = require("../../models/leavesBalanceModel");
+const deptCalendarModel = require("../../models/deptCalendarModel");
 const mongoose = require("mongoose");
 
 const applyLeaveService = async (body, user) => {
@@ -46,8 +47,8 @@ const applyLeaveService = async (body, user) => {
     }
   }
 
-  // ✅ Normalize & Sort
-  const normalizedDates = leaveDates
+  // ✅ Normalize, deduplicate & sort
+  const normalizedDates = [...new Set(leaveDates)]
     .map((d) => {
       const date = new Date(d);
       date.setUTCHours(0, 0, 0, 0);
@@ -55,56 +56,127 @@ const applyLeaveService = async (body, user) => {
     })
     .sort((a, b) => a - b);
 
-  const startDate = normalizedDates[0];
-  const endDate = normalizedDates[normalizedDates.length - 1];
-  const totalDays = normalizedDates.length;
+  const requestedYears = [...new Set(normalizedDates.map((d) => d.getUTCFullYear()))];
+  const deptCalendars = await deptCalendarModel.find({
+    deptId: user.dept,
+    year: { $in: requestedYears },
+  });
+  const calendarByYear = new Map(deptCalendars.map((calendar) => [calendar.year, calendar]));
 
-  // ✅ Check overlapping leave
-  const existingLeave = await leaveModel.findOne({
+  const skippedWeeklyOffDates = [];
+  const skippedHolidayDates = [];
+  const eligibleDates = [];
+
+  normalizedDates.forEach((dateObj) => {
+    const key = dateObj.toISOString().split("T")[0];
+    const year = dateObj.getUTCFullYear();
+    const calendar = calendarByYear.get(year);
+
+    if (!calendar) {
+      eligibleDates.push(dateObj);
+      return;
+    }
+
+    const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" }).toUpperCase();
+    const monthName = dateObj.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" }).toUpperCase();
+    const monthData = calendar.months.find((m) => m.month === monthName);
+
+    const isHoliday = monthData?.holidays?.some((holiday) => new Date(holiday.date).toISOString().split("T")[0] === key);
+    const isOverrideWorkingDay = monthData?.workingDaysOverride?.some(
+      (override) => new Date(override.date).toISOString().split("T")[0] === key,
+    );
+    const isWeeklyOff = calendar.weeklyOff.includes(dayName) && !isOverrideWorkingDay;
+
+    if (isHoliday) {
+      skippedHolidayDates.push(key);
+      return;
+    }
+
+    if (isWeeklyOff) {
+      skippedWeeklyOffDates.push(key);
+      return;
+    }
+
+    eligibleDates.push(dateObj);
+  });
+
+  const existingLeaves = await leaveModel.find({
     empId: user._id,
-    leaveDates: { $in: normalizedDates },
+    leaveDates: { $in: eligibleDates },
     leaveStatus: { $ne: "REJECTED" },
   });
 
-  if (existingLeave) {
-    return {
-      status: 409,
-      success: false,
-      message: "Leave already exists for one or more selected dates",
-    };
-  }
+  const existingLeaveDateSet = new Set(
+    existingLeaves.flatMap((leave) => leave.leaveDates.map((d) => d.toISOString().split("T")[0])),
+  );
+  const skippedExistingDates = [];
 
-  // ✅ Check Leave Balance (except LOP)
-// ✅ Check Leave Balance (except LOP)
-if (leaveType !== "LOP") {
+  const finalDates = eligibleDates.filter((dateObj) => {
+    const key = dateObj.toISOString().split("T")[0];
+    if (existingLeaveDateSet.has(key)) {
+      skippedExistingDates.push(key);
+      return false;
+    }
+    return true;
+  });
 
-  let balance = await leaveBalanceModel.findOne({ empId: user._id });
-
-  // 🔥 PLACE FIX HERE (AUTO CREATE)
-  if (!balance) {
-    balance = await leaveBalanceModel.create({
-      empId: user._id,
-      CL: { total: 6, used: 0, remaining: 6 },
-      SL: { total: 6, used: 0, remaining: 6 },
-      PL: { total: 12, used: 0, remaining: 12 }
-    });
-  }
-
-  if (balance[leaveType].remaining < totalDays) {
+  if (finalDates.length === 0) {
     return {
       status: 400,
       success: false,
-      message: `Not enough ${leaveType} balance`,
+      message:
+        "No applicable leave dates found after excluding holidays, weekly offs, and existing leave dates.",
+      skipped: {
+        holidays: skippedHolidayDates,
+        weeklyOffs: skippedWeeklyOffDates,
+        existingLeaves: skippedExistingDates,
+      },
     };
   }
-}
+
+  const startDate = finalDates[0];
+  const endDate = finalDates[finalDates.length - 1];
+  const totalDays = finalDates.length;
+
+  // ✅ Check Leave Balance (except LOP)
+  if (leaveType !== "LOP") {
+    let balance = await leaveBalanceModel.findOne({ empId: user._id });
+
+    if (!balance) {
+      balance = await leaveBalanceModel.create({
+        empId: user._id,
+        CL: { total: 6, used: 0, remaining: 6 },
+        SL: { total: 6, used: 0, remaining: 6 },
+        PL: { total: 12, used: 0, remaining: 12 },
+      });
+    }
+
+    const remaining = Number(balance?.[leaveType]?.remaining || 0);
+
+    if (remaining <= 0) {
+      return {
+        status: 400,
+        success: false,
+        message: `No ${leaveType} balance remaining. Please choose another leave type.`,
+      };
+    }
+
+    if (remaining < totalDays) {
+      return {
+        status: 400,
+        success: false,
+        message: `Not enough ${leaveType} balance. Remaining: ${remaining}, requested: ${totalDays}.`,
+      };
+    }
+  }
+
   // ✅ Create Leave
   const leave = await leaveModel.create({
     empId: user._id,
     deptId: user.dept,
     leaveType: leaveType,
     reason,
-    leaveDates: normalizedDates,
+    leaveDates: finalDates,
     startDate,
     endDate,
     totalDays,
@@ -114,8 +186,16 @@ if (leaveType !== "LOP") {
   return {
     status: 201,
     success: true,
-    message: "Leave applied successfully",
+    message:
+      skippedHolidayDates.length || skippedWeeklyOffDates.length || skippedExistingDates.length
+        ? "Leave applied for applicable dates only. Holidays/weekly offs/existing leave dates were skipped."
+        : "Leave applied successfully",
     data: leave,
+    skipped: {
+      holidays: skippedHolidayDates,
+      weeklyOffs: skippedWeeklyOffDates,
+      existingLeaves: skippedExistingDates,
+    },
   };
 };
 

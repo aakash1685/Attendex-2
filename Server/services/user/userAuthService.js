@@ -260,6 +260,8 @@ const getEmpCalendarService = async (user, query) => {
         date,
         attendanceStatus: null,
         leaveStatus: null,
+        leaveReason: null,
+        leaveType: null,
         holiday: null,
         weeklyOff: false,
         workingDayOverride: null,
@@ -363,6 +365,8 @@ const getEmpCalendarService = async (user, query) => {
           // Leave applies ONLY if no attendance exists
           if (calendarMap[key] && !calendarMap[key].attendanceStatus) {
             calendarMap[key].leaveStatus = "APPROVED";
+            calendarMap[key].leaveReason = leave.reason;
+            calendarMap[key].leaveType = leave.leaveType;
           }
         });
       });
