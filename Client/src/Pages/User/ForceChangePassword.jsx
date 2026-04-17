@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
-import { FiLock, FiShield } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiLock, FiShield } from "react-icons/fi";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const ForceChangePassword = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState({ oldPassword: false, newPassword: false, confirmPassword: false });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
@@ -91,12 +92,24 @@ const ForceChangePassword = () => {
               <div className="relative">
                 <FiLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="password"
+                  type={showPassword[item.key] ? "text" : "password"}
                   value={form[item.key]}
                   onChange={(event) => setForm((prev) => ({ ...prev, [item.key]: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none ring-indigo-500 focus:ring"
+                  className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
                   placeholder={item.placeholder}
                 />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword((prev) => ({
+                      ...prev,
+                      [item.key]: !prev[item.key],
+                    }))
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                >
+                  {showPassword[item.key] ? <FiEyeOff /> : <FiEye />}
+                </button>
               </div>
             </div>
           ))}

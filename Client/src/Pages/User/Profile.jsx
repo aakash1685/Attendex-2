@@ -9,6 +9,8 @@ import {
   FiLock,
   FiMail,
   FiMapPin,
+  FiEye,
+  FiEyeOff,
   FiPhone,
   FiRefreshCw,
   FiShield,
@@ -45,6 +47,11 @@ const Profile = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("token");
@@ -64,6 +71,7 @@ const Profile = () => {
 
       setProfile(response.data?.profile || null);
       localStorage.setItem("userName", response.data?.profile?.name || "Employee");
+      localStorage.setItem("userProfilePic", response.data?.profile?.profilePic || "");
     } catch (error) {
       toast.error(error?.response?.data?.message || error?.message || "Unable to fetch profile.");
     } finally {
@@ -176,8 +184,8 @@ const Profile = () => {
 
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-900">{profile.name || "Employee"}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{profile.designation?.name || "Designation"}</p>
-                  <p className="mt-1 text-sm text-slate-500">{profile.dept?.name || "Department"}</p>
+                  <p className="mt-1 text-sm text-slate-500">{profile.designation?.desigName || "Designation"}</p>
+                  <p className="mt-1 text-sm text-slate-500">{profile.dept?.deptName || "Department"}</p>
                   <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                     <FiActivity /> {profile.activeStatus ? "Active Employee" : "Inactive Account"}
                   </div>
@@ -220,12 +228,12 @@ const Profile = () => {
                   <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-500">
                     <FiBriefcase /> Department
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{profile.dept?.name || "—"}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{profile.dept?.deptName || "—"}</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Designation</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{profile.designation?.name || "—"}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{profile.designation?.desigName || "—"}</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -291,32 +299,65 @@ const Profile = () => {
                 <form className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={handlePasswordSubmit}>
                   <div className="sm:col-span-1">
                     <label className="mb-1 block text-sm font-medium text-slate-700">Old Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.oldPassword}
-                      onChange={(event) => setPasswordForm((prev) => ({ ...prev, oldPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring"
-                    />
+                    <div className="relative">
+                      <input
+                        type={passwordVisibility.oldPassword ? "text" : "password"}
+                        value={passwordForm.oldPassword}
+                        onChange={(event) => setPasswordForm((prev) => ({ ...prev, oldPassword: event.target.value }))}
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPasswordVisibility((prev) => ({ ...prev, oldPassword: !prev.oldPassword }))
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                      >
+                        {passwordVisibility.oldPassword ? <FiEyeOff /> : <FiEye />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="sm:col-span-1">
                     <label className="mb-1 block text-sm font-medium text-slate-700">New Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(event) => setPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring"
-                    />
+                    <div className="relative">
+                      <input
+                        type={passwordVisibility.newPassword ? "text" : "password"}
+                        value={passwordForm.newPassword}
+                        onChange={(event) => setPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPasswordVisibility((prev) => ({ ...prev, newPassword: !prev.newPassword }))
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                      >
+                        {passwordVisibility.newPassword ? <FiEyeOff /> : <FiEye />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="sm:col-span-2">
                     <label className="mb-1 block text-sm font-medium text-slate-700">Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring"
-                    />
+                    <div className="relative">
+                      <input
+                        type={passwordVisibility.confirmPassword ? "text" : "password"}
+                        value={passwordForm.confirmPassword}
+                        onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPasswordVisibility((prev) => ({ ...prev, confirmPassword: !prev.confirmPassword }))
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                      >
+                        {passwordVisibility.confirmPassword ? <FiEyeOff /> : <FiEye />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="sm:col-span-2">

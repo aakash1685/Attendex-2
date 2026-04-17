@@ -29,7 +29,13 @@ const UserCard = ({ user, onEdit, onToggle }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const passwordToShow = user.generatedPassword || "Not available after creation";
+  const generatedFallbackPassword = `${String(user.name || "")
+    .replace(/\s+/g, "")
+    .toLowerCase()}@123`;
+  const passwordToShow =
+    user.generatedPassword ||
+    user.initialPassword ||
+    (user.isFirstLogin ? generatedFallbackPassword : "Not available after creation");
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">

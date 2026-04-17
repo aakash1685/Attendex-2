@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
-import { FiArrowLeft, FiLock, FiShield } from "react-icons/fi";
+import { FiArrowLeft, FiEye, FiEyeOff, FiLock, FiShield } from "react-icons/fi";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -10,6 +10,7 @@ const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState({ newPassword: false, confirmPassword: false });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
@@ -72,12 +73,19 @@ const ResetPassword = () => {
             <div className="relative">
               <FiLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="password"
+                type={showPassword.newPassword ? "text" : "password"}
                 value={form.newPassword}
                 onChange={(event) => setForm((prev) => ({ ...prev, newPassword: event.target.value }))}
-                className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none ring-indigo-500 focus:ring"
+                className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
                 placeholder="Enter new password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => ({ ...prev, newPassword: !prev.newPassword }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+              >
+                {showPassword.newPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
           </div>
 
@@ -86,12 +94,19 @@ const ResetPassword = () => {
             <div className="relative">
               <FiLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="password"
+                type={showPassword.confirmPassword ? "text" : "password"}
                 value={form.confirmPassword}
                 onChange={(event) => setForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-                className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-3 text-sm outline-none ring-indigo-500 focus:ring"
+                className="w-full rounded-xl border border-slate-300 py-2 pl-10 pr-10 text-sm outline-none ring-indigo-500 focus:ring"
                 placeholder="Re-enter new password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => ({ ...prev, confirmPassword: !prev.confirmPassword }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+              >
+                {showPassword.confirmPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
           </div>
 
