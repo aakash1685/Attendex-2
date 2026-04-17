@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiCalendar, FiClock, FiHome, FiLogOut, FiUser } from "react-icons/fi";
+import { clearSessionForRole, getScopedToken } from "../../utils/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -31,7 +32,7 @@ const UserNavbar = () => {
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const token = localStorage.getItem("token");
+      const token = getScopedToken("user");
       if (!token) return;
 
       try {
@@ -61,11 +62,7 @@ const UserNavbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("isFirstLogin");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userProfilePic");
+    clearSessionForRole("user");
     navigate("/");
   };
 

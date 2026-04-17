@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import { persistLoginSession } from "../../utils/authStorage";
 
 const Login = ({ onBack }) => {
   const navigate = useNavigate();
@@ -55,8 +56,10 @@ const Login = ({ onBack }) => {
 
       const token = res.data.token;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", "admin");
+      persistLoginSession({
+        role: "admin",
+        token,
+      });
 
       navigate("/admin/dashboard");
     } catch (err) {

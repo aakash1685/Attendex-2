@@ -390,6 +390,111 @@ const getEmpCalendarService = async (user, query) => {
   }
 };
 
+const getUserDashboardSummaryService = async (user) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const [attendanceRecords, leaveRecords] = await Promise.all([
+      attendanceModel
+        .find({
+          empId: user._id,
+          date: { $gte: monthStart, $lt: monthEnd },
+        })
+        .select("attendanceStatus checkInTime")
+        .lean(),
+      leaveModel
+        .find({
+          empId: user._id,
+          $or: [{ leaveStatus: "PENDING" }, { leaveStatus: "APPROVED" }, { leaveStatus: "REJECTED" }],
+        })
+        .select("leaveStatus leaveDates")
+        .lean(),
+    ]);
+
+    const attendanceSummary = {
+      total: attendanceRecords.length,
+      PRESENT: 0,
+      ABSENT: 0,
+      HALF_DAY: 0,
+      LEAVE: 0,
+    };
+
+    let checkInTotalMinutes = 0;
+    let checkInCount = 0;
+
+    attendanceRecords.forEach((record) => {
+      const status = record.attendanceStatus || "ABSENT";
+      attendanceSummary[status] = (attendanceSummary[status] || 0) + 1;
+
+      if (record.checkInTime) {
+        const checkIn = new Date(record.checkInTime);
+        checkInTotalMinutes += checkIn.getHours() * 60 + checkIn.getMinutes();
+        checkInCount += 1;
+      }
+    });
+
+    const leaveSummary = {
+      total: leaveRecords.length,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      approvedDaysThisMonth: 0,
+    };
+
+    leaveRecords.forEach((record) => {
+      if (record.leaveStatus === "PENDING") leaveSummary.pending += 1;
+      if (record.leaveStatus === "APPROVED") leaveSummary.approved += 1;
+      if (record.leaveStatus === "REJECTED") leaveSummary.rejected += 1;
+
+      if (record.leaveStatus === "APPROVED" && Array.isArray(record.leaveDates)) {
+        record.leaveDates.forEach((date) => {
+          const leaveDate = new Date(date);
+          if (leaveDate >= monthStart && leaveDate < monthEnd) {
+            leaveSummary.approvedDaysThisMonth += 1;
+          }
+        });
+      }
+    });
+
+    const attendanceConsistency = attendanceSummary.total
+      ? Number(((attendanceSummary.PRESENT / attendanceSummary.total) * 100).toFixed(1))
+      : 0;
+
+    const productivityScore = attendanceSummary.total
+      ? Number((((attendanceSummary.PRESENT + attendanceSummary.HALF_DAY * 0.5) / attendanceSummary.total) * 100).toFixed(1))
+      : 0;
+
+    const averageCheckIn = checkInCount > 0 ? Math.round(checkInTotalMinutes / checkInCount) : null;
+
+    return {
+      status: 200,
+      success: true,
+      message: "User dashboard summary fetched successfully",
+      data: {
+        attendance: {
+          ...attendanceSummary,
+          consistency: attendanceConsistency,
+          averageCheckInMinutes: averageCheckIn,
+        },
+        leave: leaveSummary,
+        highlights: {
+          productivityScore,
+        },
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error("USER DASHBOARD SUMMARY ERROR:", error);
+    return {
+      status: 500,
+      success: false,
+      message: "Internal server error",
+    };
+  }
+};
+
 module.exports = {
   loginService,
   changePasswordService,
@@ -397,4 +502,5 @@ module.exports = {
   forgotPasswordService,
   resetPasswordService,
   getEmpCalendarService,
+  getUserDashboardSummaryService,
 };
